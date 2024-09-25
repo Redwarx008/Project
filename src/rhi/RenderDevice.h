@@ -21,7 +21,6 @@ namespace rhi
 	{
 		MessageCallback messageCallBack;
 		bool enableValidationLayer;
-		std::vector<const char*> requiredInstanceExtensions;
 	};
 
 	class RenderDevice
@@ -29,13 +28,15 @@ namespace rhi
 	public:
 		friend std::unique_ptr<RenderDevice> CreateRenderDevice(const RenderDeviceCreateInfo& createInfo);
 	public:
+		static RenderDevice* Create(const RenderDeviceCreateInfo& createInfo);
 		~RenderDevice();
 	private:
 		RenderDevice();
-		VkResult CreateVulkanInstance(const RenderDeviceCreateInfo& createInfo);
-
+		VkResult CreateVulkanInstance(bool enableValidationLayer);
+		void DestroyDebugUtilsMessenger();
 		VkInstance m_VulkanInstace;
 		VkPhysicalDevice m_PhysicalDevice;
+		VkDebugUtilsMessengerEXT m_DebugUtilsMessenger;
 		MessageCallback m_MessageCallBack;
 
 	};

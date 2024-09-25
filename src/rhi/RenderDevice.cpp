@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <iostream>
+#include <cassert>
 
 using namespace rhi;
 
@@ -78,7 +79,7 @@ namespace rhi
 	}
 }
 
-VkResult RenderDevice::CreateVulkanInstance(const RenderDeviceCreateInfo& createInfo)
+VkResult RenderDevice::CreateVulkanInstance(bool enableValidationLayer)
 {
 	std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME };
 
@@ -115,21 +116,6 @@ VkResult RenderDevice::CreateVulkanInstance(const RenderDeviceCreateInfo& create
 		}
 	}
 
-	if (createInfo.requiredInstanceExtensions.size() > 0)
-	{
-		for (const char* requiredExtension : createInfo.requiredInstanceExtensions)
-		{
-			// Output message if requested extension is not available
-			if (std::find(supportedInstanceExtensions.begin(), supportedInstanceExtensions.end(), requiredExtension) == supportedInstanceExtensions.end())
-			{
-				std::stringstream ss;
-				ss << "Enabled instance extension \"" << requiredExtension << "\" is not present at instance level\n";
-				createInfo.messageCallBack(MessageSeverity::Warning, ss.str().c_str());
-			}
-			instanceExtensions.push_back(requiredExtension);
-		}
-	}
-
 	VkApplicationInfo appInfo{};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	appInfo.pApplicationName = "rhi";
@@ -139,7 +125,7 @@ VkResult RenderDevice::CreateVulkanInstance(const RenderDeviceCreateInfo& create
 	instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	instanceCreateInfo.pApplicationInfo = &appInfo;
 
-	if (createInfo.enableValidationLayer) {
+	if (enableValidationLayer) {
 		VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCI{};
 		debugUtilsMessengerCI.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		debugUtilsMessengerCI.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
@@ -169,7 +155,7 @@ VkResult RenderDevice::CreateVulkanInstance(const RenderDeviceCreateInfo& create
 			instanceCreateInfo.enabledLayerCount = 1;
 		}
 		else {
-			std::cerr << "Validation layer VK_LAYER_KHRONOS_validation not present, validation is disabled";
+			m_MessageCallBack(MessageSeverity::Warning, "Validation layer VK_LAYER_KHRONOS_validation not present, validation is disabled");
 		}
 	}
 
@@ -177,14 +163,43 @@ VkResult RenderDevice::CreateVulkanInstance(const RenderDeviceCreateInfo& create
 	instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
 
 	VkResult result = vkCreateInstance(&instanceCreateInfo, nullptr, &m_VulkanInstace);
+
 	return result;
 }
 
 
+void rhi::RenderDevice::DestroyDebugUtilsMessenger()
+{
+	assert(m_VulkanInstace != VK_NULL_HANDLE && m_DebugUtilsMessenger != VK_NULL_HANDLE);
+
+	auto vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_VulkanInstace, "vkDestroyDebugUtilsMessengerEXT"));
+
+	vkDestroyDebugUtilsMessengerEXT(m_VulkanInstace, m_DebugUtilsMessenger, nullptr);
+}
+
 std::unique_ptr<RenderDevice> rhi::CreateRenderDevice(const RenderDeviceCreateInfo& createInfo)
 {
-	RenderDevice* renderDevice = new RenderDevice();
-	VkResult res = renderDevice->CreateVulkanInstance(createInfo);
+	auto renderDevice = new RenderDevice();
+	renderDevice->m_MessageCallBack = createInfo.messageCallBack;
+	VkResult result = renderDevice->CreateVulkanInstance(createInfo.enableValidationLayer);
+	if (result != VK_SUCCESS)
+	{
+		renderDevice->m_MessageCallBack(MessageSeverity::Fatal, "Failed to create a Vulkan instance");
+		return nullptr;
+	}
 
-	return renderDevice;
+	if (createInfo.enableValidationLayer)
+	{
+		auto vkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(renderDevice->m_VulkanInstace, "vkCreateDebugUtilsMessengerEXT"));
+
+		VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCI{};
+		debugUtilsMessengerCI.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		debugUtilsMessengerCI.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+		debugUtilsMessengerCI.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
+		debugUtilsMessengerCI.pfnUserCallback = DebugMessageCallback;
+		VkResult result = vkCreateDebugUtilsMessengerEXT(renderDevice->m_VulkanInstace, &debugUtilsMessengerCI, nullptr, &renderDevice->m_DebugUtilsMessenger);
+		assert(result == VK_SUCCESS);
+	}
+	return nullptr;
 }
+
