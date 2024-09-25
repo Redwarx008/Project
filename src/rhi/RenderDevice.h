@@ -15,26 +15,28 @@ namespace rhi
 		Fatal
 	};
 
-	using MessageCallBack = std::function<void(MessageSeverity, const char*)>;
+	using MessageCallback = std::function<void(MessageSeverity, const char*)>;
 
 	struct RenderDeviceCreateInfo
 	{
-		MessageCallBack messageCallBack;
+		MessageCallback messageCallBack;
 		bool enableValidationLayer;
-		std::vector<const char*> requiredExtensions;
+		std::vector<const char*> requiredInstanceExtensions;
 	};
 
 	class RenderDevice
 	{
 	public:
-		explicit RenderDevice(const RenderDeviceCreateInfo& createInfo);
-		RenderDevice() = delete;
+		friend std::unique_ptr<RenderDevice> CreateRenderDevice(const RenderDeviceCreateInfo& createInfo);
+	public:
 		~RenderDevice();
 	private:
+		RenderDevice();
+		VkResult CreateVulkanInstance(const RenderDeviceCreateInfo& createInfo);
+
 		VkInstance m_VulkanInstace;
 		VkPhysicalDevice m_PhysicalDevice;
-		MessageCallBack m_MessageCallBack;
-	};
+		MessageCallback m_MessageCallBack;
 
-	std::unique_ptr<RenderDevice> CreateRenderDevice(const RenderDeviceCreateInfo& createInfo);
+	};
 }
