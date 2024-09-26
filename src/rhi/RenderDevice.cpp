@@ -14,63 +14,32 @@ namespace rhi
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData)
 	{
-		//const RenderDevice* rd = reinterpret_cast<RenderDevice*>(pUserData);
-		
-		// Select prefix depending on flags passed to the callback
-		std::string prefix;
+		RenderDevice* rd = reinterpret_cast<RenderDevice*>(pUserData);
+
+		MessageSeverity serverity = MessageSeverity::Info;
 
 		if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
-#if defined(_WIN32)
-			prefix = "\033[32m" + prefix + "\033[0m";
-#endif
-			prefix = "VERBOSE: ";
+			serverity = MessageSeverity::Verbose;
 		}
 		else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
-			prefix = "INFO: ";
-#if defined(_WIN32)
-			prefix = "\033[36m" + prefix + "\033[0m";
-#endif
+			serverity = MessageSeverity::Info;
 		}
 		else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-			prefix = "WARNING: ";
-#if defined(_WIN32)
-			prefix = "\033[33m" + prefix + "\033[0m";
-#endif
+			serverity = MessageSeverity::Warning;
 		}
 		else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-			prefix = "ERROR: ";
-#if defined(_WIN32)
-			prefix = "\033[31m" + prefix + "\033[0m";
-#endif
+			serverity = MessageSeverity::Error;
 		}
 
-
-		// Display message to default output (console/logcat)
 		std::stringstream debugMessage;
 		if (pCallbackData->pMessageIdName) {
-			debugMessage << prefix << "[" << pCallbackData->messageIdNumber << "][" << pCallbackData->pMessageIdName << "] : " << pCallbackData->pMessage;
+			debugMessage  << "[" << pCallbackData->messageIdNumber << "][" << pCallbackData->pMessageIdName << "] : " << pCallbackData->pMessage;
 		}
 		else {
-			debugMessage << prefix << "[" << pCallbackData->messageIdNumber << "] : " << pCallbackData->pMessage;
+			debugMessage  << "[" << pCallbackData->messageIdNumber << "] : " << pCallbackData->pMessage;
 		}
 
-#if defined(__ANDROID__)
-		if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-			LOGE("%s", debugMessage.str().c_str());
-		}
-		else {
-			LOGD("%s", debugMessage.str().c_str());
-		}
-#else
-		if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-			std::cerr << debugMessage.str() << "\n\n";
-		}
-		else {
-			std::cout << debugMessage.str() << "\n\n";
-		}
-		fflush(stdout);
-#endif
-
+		rd->Message(serverity, debugMessage.str().c_str());
 
 		// The return value of this callback controls whether the Vulkan call that caused the validation message will be aborted or not
 		// We return VK_FALSE as we DON'T want Vulkan calls that cause a validation message to abort
@@ -131,6 +100,7 @@ VkResult RenderDevice::CreateInstance(bool enableValidationLayer)
 		debugUtilsMessengerCI.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 		debugUtilsMessengerCI.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
 		debugUtilsMessengerCI.pfnUserCallback = DebugMessageCallback;
+		debugUtilsMessengerCI.pUserData = this;
 		instanceCreateInfo.pNext = &debugUtilsMessengerCI;
 
 		instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -216,7 +186,7 @@ std::unique_ptr<RenderDevice> rhi::CreateRenderDevice(const RenderDeviceCreateIn
 	VkResult result = renderDevice->CreateInstance(createInfo.enableValidationLayer);
 	if (result != VK_SUCCESS)
 	{
-		renderDevice->m_MessageCallBack(MessageSeverity::Fatal, "Failed to create a Vulkan instance");
+		renderDevice->Message(MessageSeverity::Fatal, "Failed to create a Vulkan instance");
 		return nullptr;
 	}
 
@@ -229,6 +199,7 @@ std::unique_ptr<RenderDevice> rhi::CreateRenderDevice(const RenderDeviceCreateIn
 		debugUtilsMessengerCI.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 		debugUtilsMessengerCI.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
 		debugUtilsMessengerCI.pfnUserCallback = DebugMessageCallback;
+		debugUtilsMessengerCI.pUserData = renderDevice;
 		VkResult result = vkCreateDebugUtilsMessengerEXT(renderDevice->m_VKInstace, &debugUtilsMessengerCI, nullptr, &renderDevice->m_DebugUtilsMessenger);
 		assert(result == VK_SUCCESS);
 	}
