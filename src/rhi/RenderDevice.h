@@ -32,10 +32,12 @@ namespace rhi
 		~RenderDevice();
 	private:
 		RenderDevice();
-		VkResult CreateVulkanInstance(bool enableValidationLayer);
+		VkResult CreateInstance(bool enableValidationLayer);
+		void PickPhysicalDevice();
+		void CreateQueue();
 		void DestroyDebugUtilsMessenger();
-		VkInstance m_VulkanInstace;
-		VkPhysicalDevice m_PhysicalDevice;
+		VkInstance m_VKInstace;
+		VkPhysicalDevice m_VKPhysicalDevice;
 		VkDebugUtilsMessengerEXT m_DebugUtilsMessenger;
 		MessageCallback m_MessageCallBack;
 

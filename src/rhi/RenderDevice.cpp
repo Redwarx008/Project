@@ -79,7 +79,7 @@ namespace rhi
 	}
 }
 
-VkResult RenderDevice::CreateVulkanInstance(bool enableValidationLayer)
+VkResult RenderDevice::CreateInstance(bool enableValidationLayer)
 {
 	std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME };
 
@@ -162,26 +162,58 @@ VkResult RenderDevice::CreateVulkanInstance(bool enableValidationLayer)
 	instanceCreateInfo.enabledExtensionCount = (uint32_t)instanceExtensions.size();
 	instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
 
-	VkResult result = vkCreateInstance(&instanceCreateInfo, nullptr, &m_VulkanInstace);
+	VkResult result = vkCreateInstance(&instanceCreateInfo, nullptr, &m_VKInstace);
 
 	return result;
 }
 
 
+void rhi::RenderDevice::PickPhysicalDevice()
+{
+	assert(m_VKInstace != VK_NULL_HANDLE);
+
+	uint32_t deviceCount = 0;
+	vkEnumeratePhysicalDevices(m_VKInstace, &deviceCount, nullptr);
+
+	if (deviceCount == 0)
+	{
+		m_MessageCallBack(MessageSeverity::Fatal, "No device with Vulkan support found");
+		exit(-1);
+	}
+
+	std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
+	vkEnumeratePhysicalDevices(m_VKInstace, &deviceCount, physicalDevices.data());
+
+	// pick the first discrete GPU if it exists, otherwise the first integrated GPU
+	for (const VkPhysicalDevice& physicalDevice : physicalDevices)
+	{
+		VkPhysicalDeviceProperties deviceProperties;
+		vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+
+		if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+		{
+			m_VKPhysicalDevice = physicalDevice;
+			return;
+		}
+	}
+
+	m_VKPhysicalDevice = physicalDevices[0];
+}
+
 void rhi::RenderDevice::DestroyDebugUtilsMessenger()
 {
-	assert(m_VulkanInstace != VK_NULL_HANDLE && m_DebugUtilsMessenger != VK_NULL_HANDLE);
+	assert(m_VKInstace != VK_NULL_HANDLE && m_DebugUtilsMessenger != VK_NULL_HANDLE);
 
-	auto vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_VulkanInstace, "vkDestroyDebugUtilsMessengerEXT"));
+	auto vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_VKInstace, "vkDestroyDebugUtilsMessengerEXT"));
 
-	vkDestroyDebugUtilsMessengerEXT(m_VulkanInstace, m_DebugUtilsMessenger, nullptr);
+	vkDestroyDebugUtilsMessengerEXT(m_VKInstace, m_DebugUtilsMessenger, nullptr);
 }
 
 std::unique_ptr<RenderDevice> rhi::CreateRenderDevice(const RenderDeviceCreateInfo& createInfo)
 {
 	auto renderDevice = new RenderDevice();
 	renderDevice->m_MessageCallBack = createInfo.messageCallBack;
-	VkResult result = renderDevice->CreateVulkanInstance(createInfo.enableValidationLayer);
+	VkResult result = renderDevice->CreateInstance(createInfo.enableValidationLayer);
 	if (result != VK_SUCCESS)
 	{
 		renderDevice->m_MessageCallBack(MessageSeverity::Fatal, "Failed to create a Vulkan instance");
@@ -190,16 +222,18 @@ std::unique_ptr<RenderDevice> rhi::CreateRenderDevice(const RenderDeviceCreateIn
 
 	if (createInfo.enableValidationLayer)
 	{
-		auto vkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(renderDevice->m_VulkanInstace, "vkCreateDebugUtilsMessengerEXT"));
+		auto vkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(renderDevice->m_VKInstace, "vkCreateDebugUtilsMessengerEXT"));
 
 		VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCI{};
 		debugUtilsMessengerCI.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		debugUtilsMessengerCI.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 		debugUtilsMessengerCI.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
 		debugUtilsMessengerCI.pfnUserCallback = DebugMessageCallback;
-		VkResult result = vkCreateDebugUtilsMessengerEXT(renderDevice->m_VulkanInstace, &debugUtilsMessengerCI, nullptr, &renderDevice->m_DebugUtilsMessenger);
+		VkResult result = vkCreateDebugUtilsMessengerEXT(renderDevice->m_VKInstace, &debugUtilsMessengerCI, nullptr, &renderDevice->m_DebugUtilsMessenger);
 		assert(result == VK_SUCCESS);
 	}
+
+
 	return nullptr;
 }
 
