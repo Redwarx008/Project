@@ -81,7 +81,9 @@ ENDIF()
 
 add_library(rhi
 			RenderDevice.h
-			RenderDevice.cpp )
+			RenderDevice.cpp 
+			SwapChain.h 
+			SwapChain.cpp)
 
 # being a cross-platform target, we enforce standards conformance on MSVC
 target_compile_options(rhi PUBLIC "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/permissive->")

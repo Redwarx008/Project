@@ -39,7 +39,7 @@ namespace rhi
 			debugMessage  << "[" << pCallbackData->messageIdNumber << "] : " << pCallbackData->pMessage;
 		}
 
-		rd->Message(serverity, debugMessage.str().c_str());
+		rd->GetMessageCallback()(serverity, debugMessage.str().c_str());
 
 		// The return value of this callback controls whether the Vulkan call that caused the validation message will be aborted or not
 		// We return VK_FALSE as we DON'T want Vulkan calls that cause a validation message to abort
@@ -48,7 +48,7 @@ namespace rhi
 	}
 }
 
-VkResult RenderDevice::CreateInstance(bool enableValidationLayer)
+bool RenderDevice::CreateInstance(bool enableValidationLayer)
 {
 	std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME };
 
@@ -133,8 +133,12 @@ VkResult RenderDevice::CreateInstance(bool enableValidationLayer)
 	instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
 
 	VkResult result = vkCreateInstance(&instanceCreateInfo, nullptr, &m_VKInstace);
-
-	return result;
+	if (result != VK_SUCCESS)
+	{
+		Error("Failed to create a Vulkan instance");
+		return false;
+	}
+	return true;
 }
 
 
@@ -170,6 +174,92 @@ void rhi::RenderDevice::PickPhysicalDevice()
 	m_VKPhysicalDevice = physicalDevices[0];
 }
 
+bool rhi::RenderDevice::CreateDevice()
+{
+	assert(m_VKPhysicalDevice != VK_NULL_HANDLE);
+	// find queue family
+	uint32_t queueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(m_VKPhysicalDevice, &queueFamilyCount, nullptr);
+	std::vector<VkQueueFamilyProperties> queueFamilyPropertieses(queueFamilyCount);
+
+	for (uint32_t i = 0; i < queueFamilyPropertieses.size(); i++)
+	{
+		const auto& queueFamilyProps = queueFamilyPropertieses[i];
+
+		if (!m_QueueFamilyIndices.graphics.has_value())
+		{
+			if (queueFamilyProps.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+			{
+				m_QueueFamilyIndices.graphics = i;
+			}
+		}
+
+		if (!m_QueueFamilyIndices.compute.has_value())
+		{
+			if (queueFamilyProps.queueFlags & VK_QUEUE_COMPUTE_BIT &&
+				queueFamilyProps.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+			{
+				m_QueueFamilyIndices.compute = i;
+			}
+		}
+
+		if (!m_QueueFamilyIndices.transfer.has_value())
+		{
+			if (queueFamilyProps.queueFlags & VK_QUEUE_TRANSFER_BIT &&
+				queueFamilyProps.queueFlags & VK_QUEUE_COMPUTE_BIT &&
+				queueFamilyProps.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+			{
+				m_QueueFamilyIndices.transfer = i;
+			}
+		}
+	}
+
+	std::vector<uint32_t> queueFamilies { m_QueueFamilyIndices.graphics.value(),
+		m_QueueFamilyIndices.compute.value(),
+		m_QueueFamilyIndices.transfer.value()};
+
+	float priority = 1.f;
+	std::vector<VkDeviceQueueCreateInfo> queueCreateInfo(queueFamilies.size());
+	for (uint32_t queueFamilyIndex : queueFamilies)
+	{
+		VkDeviceQueueCreateInfo queueInfo{};
+		queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueInfo.queueFamilyIndex = queueFamilyIndex;
+		queueInfo.queueCount = 1;
+		queueInfo.pQueuePriorities = &priority;
+		queueCreateInfo.push_back(queueInfo);
+	}
+
+	// Create the logical device
+	std::vector<const char*> deviceExtensions;
+
+	deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
+	VkPhysicalDeviceFeatures deviceFeatures{};
+	deviceFeatures.textureCompressionBC = true;
+	// todo: add more feature 
+
+	VkDeviceCreateInfo deviceCreateInfo{};
+	deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+	deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
+	deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+	deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfo.size());
+	deviceCreateInfo.pQueueCreateInfos = queueCreateInfo.data();
+
+	VkResult result = vkCreateDevice(m_VKPhysicalDevice, &deviceCreateInfo, nullptr, &m_Device);
+	if (result != VK_SUCCESS)
+	{
+		Error("Failed to create a Vulkan device");
+		return false;
+	}
+
+	vkGetDeviceQueue(m_Device, m_QueueFamilyIndices.graphics.value(), 0, &m_GraphicsQueue);
+	vkGetDeviceQueue(m_Device, m_QueueFamilyIndices.compute.value(), 0, &m_ComputeQueue);
+	vkGetDeviceQueue(m_Device, m_QueueFamilyIndices.transfer.value(), 0, &m_TransferQueue);
+	return true;
+}
+
 void rhi::RenderDevice::DestroyDebugUtilsMessenger()
 {
 	assert(m_VKInstace != VK_NULL_HANDLE && m_DebugUtilsMessenger != VK_NULL_HANDLE);
@@ -183,10 +273,9 @@ std::unique_ptr<RenderDevice> rhi::CreateRenderDevice(const RenderDeviceCreateIn
 {
 	auto renderDevice = new RenderDevice();
 	renderDevice->m_MessageCallBack = createInfo.messageCallBack;
-	VkResult result = renderDevice->CreateInstance(createInfo.enableValidationLayer);
-	if (result != VK_SUCCESS)
+
+	if (!renderDevice->CreateInstance(createInfo.enableValidationLayer))
 	{
-		renderDevice->Message(MessageSeverity::Fatal, "Failed to create a Vulkan instance");
 		return nullptr;
 	}
 
@@ -204,7 +293,12 @@ std::unique_ptr<RenderDevice> rhi::CreateRenderDevice(const RenderDeviceCreateIn
 		assert(result == VK_SUCCESS);
 	}
 
+	renderDevice->PickPhysicalDevice();
 
+	if (!renderDevice->CreateDevice())
+	{
+		return nullptr;
+	}
 	return nullptr;
 }
 
