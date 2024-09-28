@@ -142,7 +142,7 @@ bool RenderDevice::CreateInstance(bool enableValidationLayer)
 }
 
 
-void rhi::RenderDevice::PickPhysicalDevice()
+bool rhi::RenderDevice::PickPhysicalDevice()
 {
 	assert(m_VKInstace != VK_NULL_HANDLE);
 
@@ -151,8 +151,8 @@ void rhi::RenderDevice::PickPhysicalDevice()
 
 	if (deviceCount == 0)
 	{
-		m_MessageCallBack(MessageSeverity::Fatal, "No device with Vulkan support found");
-		exit(-1);
+		Error("No device with Vulkan support found");
+		return false;
 	}
 
 	std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
@@ -167,11 +167,12 @@ void rhi::RenderDevice::PickPhysicalDevice()
 		if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 		{
 			m_VKPhysicalDevice = physicalDevice;
-			return;
+			return true;
 		}
 	}
 
 	m_VKPhysicalDevice = physicalDevices[0];
+	return true;
 }
 
 bool rhi::RenderDevice::CreateDevice()
@@ -293,7 +294,10 @@ std::unique_ptr<RenderDevice> rhi::CreateRenderDevice(const RenderDeviceCreateIn
 		assert(result == VK_SUCCESS);
 	}
 
-	renderDevice->PickPhysicalDevice();
+	if (!renderDevice->PickPhysicalDevice())
+	{
+		return nullptr;
+	}
 
 	if (!renderDevice->CreateDevice())
 	{

@@ -3,3 +3,9 @@
 #ifdef __ANDROID__
 #include "VulkanAndroid.h"
 #endif
+
+
+class SwapChian
+{
+
+};

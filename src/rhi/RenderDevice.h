@@ -75,7 +75,7 @@ namespace rhi
 	private:
 		RenderDevice();
 		bool CreateInstance(bool enableValidationLayer);
-		void PickPhysicalDevice();
+		bool PickPhysicalDevice();
 		bool CreateDevice();
 		void DestroyDebugUtilsMessenger();
 
