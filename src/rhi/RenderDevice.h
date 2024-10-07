@@ -7,7 +7,8 @@
 #include <optional>
 
 #include <vulkan/vulkan.h>
-
+#include "SwapChain.h"
+#include "Texture.h"
 
 namespace rhi
 {
@@ -62,10 +63,12 @@ namespace rhi
 //		}
 	};
 
+
 	class RenderDevice
 	{
 	public:
 		friend std::unique_ptr<RenderDevice> CreateRenderDevice(const RenderDeviceCreateInfo& createInfo);
+		friend class SwapChain;
 	public:
 		static RenderDevice* Create(const RenderDeviceCreateInfo& createInfo);
 		void Error(const std::string& message) { m_MessageCallBack(MessageSeverity::Error, message.c_str()); };
@@ -97,5 +100,7 @@ namespace rhi
 		VkQueue m_GraphicsQueue;
 		VkQueue m_ComputeQueue;
 		VkQueue m_TransferQueue;
+	public:
+		Texture* CreateTexture2D(const TextureDesc& desc, VkImage imageHandle);
 	};
 }

@@ -83,7 +83,7 @@ add_library(rhi
 			RenderDevice.h
 			RenderDevice.cpp 
 			SwapChain.h 
-			SwapChain.cpp)
+			SwapChain.cpp "RHI.h" "Texture.h")
 
 # being a cross-platform target, we enforce standards conformance on MSVC
 target_compile_options(rhi PUBLIC "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/permissive->")
@@ -95,4 +95,4 @@ ELSE(WIN32)
 	target_link_libraries(rhi ${XCB_LIBRARIES} ${Vulkan_LIBRARY} ${Vulkan_LIBRARY} ${DIRECTFB_LIBRARIES} ${WAYLAND_CLIENT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 ENDIF(WIN32)
 
-target_link_libraries(rhi Vulkan::Vulkan)
+target_link_libraries(rhi Vulkan::Vulkan vma)
