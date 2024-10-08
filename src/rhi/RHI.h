@@ -2,10 +2,19 @@
 
 #include <vector>
 
-
-
 namespace rhi
 {
+    enum class MessageSeverity : uint8_t
+    {
+        Verbose,
+        Info,
+        Warning,
+        Error,
+        Fatal
+    };
+
+    using MessageCallback = std::function<void(MessageSeverity, const char*)>;
+
 	class MemoryResource
 	{
 	public:
@@ -40,4 +49,5 @@ namespace rhi
         OpacityMicromapWrite = 0x00200000,
         OpacityMicromapBuildInput = 0x00400000,
     };
+
 }

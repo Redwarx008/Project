@@ -16,19 +16,19 @@ namespace rhi
 		surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 		surfaceCreateInfo.hinstance = (HINSTANCE)platformHandle;
 		surfaceCreateInfo.hwnd = (HWND)platformWindow;
-		err = vkCreateWin32SurfaceKHR(m_RenderDevice->m_VKInstace, &surfaceCreateInfo, nullptr, &m_WindowSurface);
+		err = vkCreateWin32SurfaceKHR(m_RenderDevice->m_Context.instace, &surfaceCreateInfo, nullptr, &m_WindowSurface);
 
 		if (err != VK_SUCCESS)
 		{
-			m_RenderDevice->Error("Could not create surface!");
+			m_RenderDevice->m_Context.Error("Could not create surface!");
 			return;
 		}
 
 		VkBool32 isGraphicsSupportPresent;
-		vkGetPhysicalDeviceSurfaceSupportKHR(m_RenderDevice->m_VKPhysicalDevice, m_RenderDevice->m_QueueFamilyIndices.graphics.value(), m_WindowSurface, &isGraphicsSupportPresent);
+		vkGetPhysicalDeviceSurfaceSupportKHR(m_RenderDevice->m_Context.physicalDevice, m_RenderDevice->m_QueueFamilyIndices.graphics.value(), m_WindowSurface, &isGraphicsSupportPresent);
 		if (!isGraphicsSupportPresent)
 		{
-			m_RenderDevice->Error("Could not support present!");
+			m_RenderDevice->m_Context.Error("Could not support present!");
 			return;
 		}
 
@@ -40,11 +40,11 @@ namespace rhi
 
 		// Get list of supported surface formats
 		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(m_RenderDevice->m_VKPhysicalDevice, m_WindowSurface, &formatCount, NULL);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(m_RenderDevice->m_Context.physicalDevice, m_WindowSurface, &formatCount, NULL);
 		assert(formatCount > 0);
 
 		std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(m_RenderDevice->m_VKPhysicalDevice, m_WindowSurface, &formatCount, surfaceFormats.data());
+		vkGetPhysicalDeviceSurfaceFormatsKHR(m_RenderDevice->m_Context.physicalDevice, m_WindowSurface, &formatCount, surfaceFormats.data());
 
 		VkSurfaceFormatKHR selectedFormat = surfaceFormats[0];
 		std::vector<VkFormat> preferredImageFormats = {
@@ -66,15 +66,15 @@ namespace rhi
 
 		// Get physical device surface properties and formats
 		VkSurfaceCapabilitiesKHR surfCaps;
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_RenderDevice->m_VKPhysicalDevice, m_WindowSurface, &surfCaps);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_RenderDevice->m_Context.physicalDevice, m_WindowSurface, &surfCaps);
 
 		// Get available present modes
 		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(m_RenderDevice->m_VKPhysicalDevice, m_WindowSurface, &presentModeCount, NULL);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(m_RenderDevice->m_Context.physicalDevice, m_WindowSurface, &presentModeCount, NULL);
 		assert(presentModeCount > 0);
 
 		std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-		vkGetPhysicalDeviceSurfacePresentModesKHR(m_RenderDevice->m_VKPhysicalDevice, m_WindowSurface, &presentModeCount, presentModes.data());
+		vkGetPhysicalDeviceSurfacePresentModesKHR(m_RenderDevice->m_Context.physicalDevice, m_WindowSurface, &presentModeCount, presentModes.data());
 
 		VkExtent2D swapchainExtent = {};
 		// If width (and height) equals the special value 0xFFFFFFFF, the size of the surface will be set by the swapchain
@@ -181,11 +181,11 @@ namespace rhi
 			swapchainCI.imageUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 		}
 
-		VkResult err = vkCreateSwapchainKHR(m_RenderDevice->m_Device, &swapchainCI, nullptr, &m_SwapChain);
+		VkResult err = vkCreateSwapchainKHR(m_RenderDevice->m_Context.device, &swapchainCI, nullptr, &m_SwapChain);
 
 		if (err != VK_SUCCESS)
 		{
-			m_RenderDevice->Error("Could not create swapchain!");
+			m_RenderDevice->m_Context.Error("Could not create swapchain!");
 		}
 
 
