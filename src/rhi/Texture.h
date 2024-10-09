@@ -4,7 +4,7 @@
 #include <vk_mem_alloc.h>
 
 #include "RHI.h"
-#include "RenderDevice.h"
+#include "VkContext.h"
 
 #include <array>
 
@@ -187,12 +187,20 @@ namespace rhi
 		TextureDimension dimension = TextureDimension::Unknown;
 		uint32_t width = 1;
 		uint32_t height = 1;
-		/// For a 1D array or 2D array, number of array slices
-		uint32_t arraySize = 1;
-		/// For a 3D texture, number of depth slices
-		uint32_t depth;
+		union 
+		{
+			/// For a 1D array or 2D array, number of array slices
+			uint32_t arraySize = 1;
+			/// For a 3D texture, number of depth slices
+			uint32_t depth;
+		};
+		uint32_t sampleCount = 1;
 		uint32_t mipLevels = 1;
 		Format format = Format::UNKNOWN;
+
+		bool isSampled = true;
+		bool isStorage = false;
+		bool isRenderTarget = false;
 
 		ResourceStates initialState = ResourceStates::Unknown;
 
@@ -204,17 +212,26 @@ namespace rhi
 		constexpr TextureDesc& setFormat(Format value) { format = value; return *this; }
 		constexpr TextureDesc& setDimension(TextureDimension value) { dimension = value; return *this; }
 		constexpr TextureDesc& setInitialState(ResourceStates value) { initialState = value; return *this; }
+		constexpr TextureDesc& setIsSampled(bool value) { isSampled = value; return *this; }
+		constexpr TextureDesc& setIsStorage(bool value) { isStorage = value; return *this; }
+		constexpr TextureDesc& setIsRenderTarget(bool value) { isRenderTarget = value; return *this; }
 	};
 
 	class Texture : public MemoryResource
 	{
 	public:
+		Texture(const VkContext& context, const VmaAllocator& allocator)
+			:m_Context(context),
+			m_Allocator(allocator)
+		{}
+		~Texture();
+		TextureDesc desc;
 		VkImage image;
 		VkImageView	view;
 		VkFormat format;
 
 	private:
-		friend class RenderDevice;
-		Texture() = default;
+		const VkContext& m_Context;
+		const VmaAllocator& m_Allocator;
 	};
 }

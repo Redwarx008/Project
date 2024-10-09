@@ -292,7 +292,7 @@ namespace rhi
 	}
 
 
-	Texture* RenderDevice::CreateTexture2D(const TextureDesc& desc, VkImage imageHandle)
+	Texture* RenderDevice::CreateTexture(const TextureDesc& desc, VkImage imageHandle)
 	{
 		Texture* tex = new Texture();
 		tex->image = imageHandle;

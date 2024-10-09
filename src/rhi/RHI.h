@@ -1,6 +1,9 @@
 #pragma once
 
 #include <vector>
+#include <functional>
+
+#include <vk_mem_alloc.h>
 
 namespace rhi
 {

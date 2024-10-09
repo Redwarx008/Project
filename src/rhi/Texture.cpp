@@ -30,4 +30,18 @@ namespace rhi
 			return VK_IMAGE_ASPECT_COLOR_BIT;
 		}
 	}
+
+	Texture::~Texture()
+	{
+		if (view)
+		{
+			vkDestroyImageView(m_Context.device, view, nullptr);
+			view = VK_NULL_HANDLE;
+		}
+		if (managed)
+		{
+			vmaDestroyImage(m_Allocator, image, allocation);
+			image = VK_NULL_HANDLE;
+		}
+	}
 }
