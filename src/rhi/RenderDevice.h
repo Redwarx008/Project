@@ -41,6 +41,7 @@ namespace rhi
 		void DestroyDebugUtilsMessenger();
 
 		VkContext m_Context;
+		VmaAllocator m_Allocator;
 
 		VkDebugUtilsMessengerEXT m_DebugUtilsMessenger;
 

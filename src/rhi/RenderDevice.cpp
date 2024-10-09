@@ -294,8 +294,20 @@ namespace rhi
 
 	Texture* RenderDevice::CreateTexture(const TextureDesc& desc, VkImage imageHandle)
 	{
-		Texture* tex = new Texture();
+		Texture* tex = new Texture(m_Context, m_Allocator);
 		tex->image = imageHandle;
+		tex->managed = false;
+		tex->format = GetVkFormat(desc.format);
+
+		VkImageCreateInfo imageCreateInfo{};
+		imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageCreateInfo.imageType = GetVkImageType(desc.dimension);
+		imageCreateInfo.extent = { desc.width, desc.height, desc.depth };
+		imageCreateInfo.mipLevels = desc.mipLevels;
+		imageCreateInfo.arrayLayers = desc.depth;
+		imageCreateInfo.format = tex->format;
+		imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageCreateInfo.usage = GetVkImageUsageFlags(desc);
 	}
 }
 
