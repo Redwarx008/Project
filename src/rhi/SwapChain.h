@@ -4,11 +4,12 @@
 
 #include <vector>
 
-#include "RenderDevice.h"
 #include "Texture.h"
 
 namespace rhi
 {
+	class RenderDevice;
+
 	class SwapChain
 	{
 	public:
@@ -21,8 +22,7 @@ namespace rhi
 		VkSurfaceKHR m_WindowSurface;
 		VkSwapchainKHR m_SwapChain;
 
-		std::vector<VkImage> m_Images;
-		std::vector<Texture> m_Textures;
+		std::vector<Texture*> m_SwapChainTextures;
 	};
 }
 

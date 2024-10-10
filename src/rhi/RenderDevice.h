@@ -57,6 +57,7 @@ namespace rhi
 		VkQueue m_ComputeQueue;
 		VkQueue m_TransferQueue;
 	public:
+		Texture* CreateTexture(const TextureDesc& desc);
 		Texture* CreateTexture(const TextureDesc& desc, VkImage imageHandle);
 	};
 }

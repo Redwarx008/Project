@@ -8,7 +8,7 @@ using namespace rhi;
 
 namespace rhi
 {
-	VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessageCallback(
+	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessageCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
@@ -291,12 +291,26 @@ namespace rhi
 		return nullptr;
 	}
 
+	static void CreateDefaultImageView(VkDevice device, Texture& texture, const TextureDesc& desc)
+	{
+		VkImageViewCreateInfo viewCreateInfo{};
+		viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		viewCreateInfo.viewType = GetVkImageViewType(desc.dimension);
+		viewCreateInfo.format = texture.format;
+		viewCreateInfo.image = texture.image;
+		viewCreateInfo.subresourceRange.aspectMask = GetVkAspectMask(texture.format);
+		viewCreateInfo.subresourceRange.baseArrayLayer = 0;
+		viewCreateInfo.subresourceRange.layerCount = desc.arraySize;
+		viewCreateInfo.subresourceRange.baseMipLevel = 0;
+		viewCreateInfo.subresourceRange.levelCount = desc.mipLevels;
+		VkResult res = vkCreateImageView(device, &viewCreateInfo, nullptr, &texture.view);
+		ASSERT_VK_SUCCESS(res);
+	}
 
-	Texture* RenderDevice::CreateTexture(const TextureDesc& desc, VkImage imageHandle)
+	Texture* RenderDevice::CreateTexture(const TextureDesc& desc)
 	{
 		Texture* tex = new Texture(m_Context, m_Allocator);
-		tex->image = imageHandle;
-		tex->managed = false;
+		tex->managed = true;
 		tex->format = GetVkFormat(desc.format);
 
 		VkImageCreateInfo imageCreateInfo{};
@@ -308,6 +322,33 @@ namespace rhi
 		imageCreateInfo.format = tex->format;
 		imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageCreateInfo.usage = GetVkImageUsageFlags(desc);
+		imageCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
+		imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		imageCreateInfo.samples = GetVkImageSampleCount(desc);
+		imageCreateInfo.flags = GetVkImageUsageFlags(desc);
+
+		VkResult res = vkCreateImage(m_Context.device, &imageCreateInfo, nullptr, &tex->image);
+		if (res != VK_SUCCESS)
+		{
+			delete tex;
+			return nullptr;
+		}
+
+		CreateDefaultImageView(m_Context.device, *tex, desc);
+
+		return tex;
+	}
+
+	Texture* RenderDevice::CreateTexture(const TextureDesc& desc, VkImage imageHandle)
+	{
+		Texture* tex = new Texture(m_Context, m_Allocator);
+		tex->image = imageHandle;
+		tex->managed = false;
+		tex->format = GetVkFormat(desc.format);
+
+		CreateDefaultImageView(m_Context.device, *tex, desc);
+
+		return tex;
 	}
 }
 

@@ -5,6 +5,8 @@
 
 #include <vk_mem_alloc.h>
 
+#define ASSERT_VK_SUCCESS(res) assert((res) == VK_SUCCESS)
+
 namespace rhi
 {
     enum class MessageSeverity : uint8_t

@@ -159,6 +159,7 @@ namespace rhi
 			:m_Context(context),
 			m_Allocator(allocator)
 		{}
+		Texture() = delete;
 		~Texture();
 		TextureDesc desc;
 		VkImage image;
@@ -176,7 +177,11 @@ namespace rhi
 
 	VkImageCreateFlags GetVkImageCreateFlags(TextureDimension dimension);
 
+	VkSampleCountFlagBits GetVkImageSampleCount(const TextureDesc& desc);
+
 	VkImageType GetVkImageType(TextureDimension dimension);
+
+	VkImageViewType GetVkImageViewType(TextureDimension dimension);
 
 	VkFormat GetVkFormat(Format format);
 

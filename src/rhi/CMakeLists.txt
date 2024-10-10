@@ -83,7 +83,7 @@ add_library(rhi
 			RenderDevice.h
 			RenderDevice.cpp 
 			SwapChain.h 
-			SwapChain.cpp "RHI.h" "Texture.h" "VkContext.h" "Texture.cpp" "VmaUsage.cpp")
+			SwapChain.cpp "RHI.h" "Texture.h" "VkContext.h" "Texture.cpp" "VmaUsage.cpp" "Macro.h")
 
 # being a cross-platform target, we enforce standards conformance on MSVC
 target_compile_options(rhi PUBLIC "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/permissive->")

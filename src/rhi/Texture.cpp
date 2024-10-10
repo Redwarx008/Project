@@ -1,5 +1,6 @@
 #include "Texture.h"
 
+#include <assert.h>
 
 namespace rhi
 {
@@ -197,6 +198,37 @@ namespace rhi
 		return flags;
 	}
 
+	VkSampleCountFlagBits GetVkImageSampleCount(const TextureDesc& desc)
+	{
+		switch (desc.sampleCount)
+		{
+		case 1:
+			return VK_SAMPLE_COUNT_1_BIT;
+
+		case 2:
+			return VK_SAMPLE_COUNT_2_BIT;
+
+		case 4:
+			return VK_SAMPLE_COUNT_4_BIT;
+
+		case 8:
+			return VK_SAMPLE_COUNT_8_BIT;
+
+		case 16:
+			return VK_SAMPLE_COUNT_16_BIT;
+
+		case 32:
+			return VK_SAMPLE_COUNT_32_BIT;
+
+		case 64:
+			return VK_SAMPLE_COUNT_64_BIT;
+
+		default:
+			assert(!"Invalid Enumeration Value");
+			return VK_SAMPLE_COUNT_1_BIT;
+		}
+	}
+
 	VkImageType GetVkImageType(TextureDimension dimension)
 	{
 		switch (dimension)
@@ -217,6 +249,38 @@ namespace rhi
 		case TextureDimension::Unknown:
 		default:
 			assert(!"Invalid Enumeration Value");
+		}
+	}
+
+	VkImageViewType GetVkImageViewType(TextureDimension dimension)
+	{
+		switch (dimension)
+		{
+		case TextureDimension::Texture1D:
+			return VK_IMAGE_VIEW_TYPE_1D;
+
+		case TextureDimension::Texture1DArray:
+			return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+
+		case TextureDimension::Texture2D:
+			return VK_IMAGE_VIEW_TYPE_2D;
+
+		case TextureDimension::Texture2DArray:
+			return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+
+		case TextureDimension::TextureCube:
+			return VK_IMAGE_VIEW_TYPE_CUBE;
+
+		case TextureDimension::TextureCubeArray:
+			return VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+
+		case TextureDimension::Texture3D:
+			return VK_IMAGE_VIEW_TYPE_3D;
+
+		case TextureDimension::Unknown:
+		default:
+			assert(!"Invalid Enumeration Value");
+			return VK_IMAGE_VIEW_TYPE_2D;
 		}
 	}
 
@@ -261,4 +325,5 @@ namespace rhi
 			image = VK_NULL_HANDLE;
 		}
 	}
+
 }

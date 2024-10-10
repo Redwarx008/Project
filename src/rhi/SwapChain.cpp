@@ -1,4 +1,6 @@
+#include "Texture.h"
 #include "SwapChain.h"
+#include "RenderDevice.h"
 #include <cassert>
 
 namespace rhi
@@ -188,24 +190,49 @@ namespace rhi
 			m_RenderDevice->m_Context.Error("Could not create swapchain!");
 		}
 
+		// If an existing swap chain is re-created, destroy the old swap chain
+		// This also cleans up all the presentable images
+		if (oldSwapchain != VK_NULL_HANDLE)
+		{
+			for (auto& texture : m_SwapChainTextures)
+			{
+				delete texture;
+			}
+			m_SwapChainTextures.clear();
+			vkDestroySwapchainKHR(m_RenderDevice->m_Context.device, oldSwapchain, nullptr);
+		}
 
+		uint32_t imageCount;
+		vkGetSwapchainImagesKHR(m_RenderDevice->m_Context.device, m_SwapChain, &imageCount, NULL);
+
+		m_SwapChainTextures.resize(imageCount);
+
+		TextureDesc swapChainTextureDesc;
+		swapChainTextureDesc.width = swapchainExtent.width;
+		swapChainTextureDesc.height = swapchainExtent.height;
+		swapChainTextureDesc.format = swapChainFormat;
+		swapChainTextureDesc.initialState = rhi::ResourceStates::Present;
+		for (auto& texture : m_SwapChainTextures)
+		{
+			//texture = m_RenderDevice->CreateTexture()
+		}
 	}
 
 	void SwapChain::Cleanup()
 	{
-		if (m_SwapChain != VK_NULL_HANDLE)
-		{
-			for (uint32_t i = 0; i < imageCount; i++)
-			{
-				vkDestroyImageView(device, buffers[i].view, nullptr);
-			}
-		}
-		if (surface != VK_NULL_HANDLE)
-		{
-			vkDestroySwapchainKHR(device, swapChain, nullptr);
-			vkDestroySurfaceKHR(instance, surface, nullptr);
-		}
-		surface = VK_NULL_HANDLE;
-		swapChain = VK_NULL_HANDLE;
+		//if (m_SwapChain != VK_NULL_HANDLE)
+		//{
+		//	for (uint32_t i = 0; i < imageCount; i++)
+		//	{
+		//		vkDestroyImageView(device, buffers[i].view, nullptr);
+		//	}
+		//}
+		//if (surface != VK_NULL_HANDLE)
+		//{
+		//	vkDestroySwapchainKHR(device, swapChain, nullptr);
+		//	vkDestroySurfaceKHR(instance, surface, nullptr);
+		//}
+		//surface = VK_NULL_HANDLE;
+		//swapChain = VK_NULL_HANDLE;
 	}
 }
