@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.13)
 
 project(rhi VERSION 1.0.0)
 
@@ -79,11 +79,25 @@ ELSE()
 	message(STATUS ${Vulkan_LIBRARY})
 ENDIF()
 
-add_library(rhi
-			RenderDevice.h
-			RenderDevice.cpp 
-			SwapChain.h 
-			SwapChain.cpp "RHI.h" "Texture.h" "VkContext.h" "Texture.cpp" "VmaUsage.cpp" "Macro.h")
+set(interface_rhi 
+	include/IRenderDevice.h)
+
+set(src_vk
+	src/VulkanVma.cpp
+	src/RenderDevice.h
+	src/RenderDevice.cpp)
+
+add_library(rhi "")
+
+target_sources(rhi
+	PUBLIC
+				${interface_rhi}
+	PRIVATE
+				${src_vk})
+
+target_include_directories(rhi PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> )
+
+set_target_properties(rhi PROPERTIES FOLDER "RHI")
 
 # being a cross-platform target, we enforce standards conformance on MSVC
 target_compile_options(rhi PUBLIC "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/permissive->")

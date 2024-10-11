@@ -2,10 +2,11 @@
 add_subdirectory(rhi)
 
 # Add source to this project's executable.
-add_executable(${TARGET_NAME}
-    main.cpp
-)
+add_executable(${TARGET_NAME} )
 
+target_sources(${TARGET_NAME} 
+	PRIVATE
+				main.cpp)
 
 set_property(TARGET ${TARGET_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:vulkan_guide>")
 

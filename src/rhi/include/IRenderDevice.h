@@ -1,0 +1,8 @@
+
+namespace rhi
+{
+	class IRenderDevice
+	{
+
+	};
+}
