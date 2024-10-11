@@ -80,12 +80,12 @@ ELSE()
 ENDIF()
 
 set(interface_rhi 
-	include/IRenderDevice.h)
+	include/IRenderDevice.h "include/ITexture.h")
 
 set(src_vk
 	src/VulkanVma.cpp
 	src/RenderDevice.h
-	src/RenderDevice.cpp)
+	src/RenderDevice.cpp "src/Texture.h" "src/Texture.cpp")
 
 add_library(rhi "")
 
