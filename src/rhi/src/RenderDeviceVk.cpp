@@ -1,10 +1,8 @@
-#include "RenderDevice.h"
+#include "RenderDeviceVk.h"
 
 #include <sstream>
-#include <iostream>
-#include <cassert>
 
-using namespace rhi;
+#include "TextureVk.h"
 
 namespace rhi
 {
@@ -14,7 +12,7 @@ namespace rhi
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData)
 	{
-		RenderDevice* rd = reinterpret_cast<RenderDevice*>(pUserData);
+		RenderDeviceVk* rd = reinterpret_cast<RenderDeviceVk*>(pUserData);
 
 		MessageSeverity serverity = MessageSeverity::Info;
 
@@ -33,10 +31,10 @@ namespace rhi
 
 		std::stringstream debugMessage;
 		if (pCallbackData->pMessageIdName) {
-			debugMessage  << "[" << pCallbackData->messageIdNumber << "][" << pCallbackData->pMessageIdName << "] : " << pCallbackData->pMessage;
+			debugMessage << "[" << pCallbackData->messageIdNumber << "][" << pCallbackData->pMessageIdName << "] : " << pCallbackData->pMessage;
 		}
 		else {
-			debugMessage  << "[" << pCallbackData->messageIdNumber << "] : " << pCallbackData->pMessage;
+			debugMessage << "[" << pCallbackData->messageIdNumber << "] : " << pCallbackData->pMessage;
 		}
 
 		rd->GetMessageCallback()(serverity, debugMessage.str().c_str());
@@ -47,7 +45,7 @@ namespace rhi
 		return VK_FALSE;
 	}
 
-	bool RenderDevice::CreateInstance(bool enableValidationLayer)
+	bool RenderDeviceVk::CreateInstance(bool enableValidationLayer)
 	{
 		std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME };
 
@@ -127,7 +125,7 @@ namespace rhi
 	}
 
 
-	bool rhi::RenderDevice::PickPhysicalDevice()
+	bool RenderDeviceVk::PickPhysicalDevice()
 	{
 		assert(m_Context.instace != VK_NULL_HANDLE);
 
@@ -160,7 +158,7 @@ namespace rhi
 		return true;
 	}
 
-	bool rhi::RenderDevice::CreateDevice()
+	bool RenderDeviceVk::CreateDevice()
 	{
 		assert(m_Context.physicalDevice != VK_NULL_HANDLE);
 		// find queue family
@@ -246,26 +244,26 @@ namespace rhi
 		return true;
 	}
 
-	void rhi::RenderDevice::DestroyDebugUtilsMessenger()
+	void RenderDeviceVk::DestroyDebugUtilsMessenger()
 	{
-		assert(m_Context.instace != VK_NULL_HANDLE && m_DebugUtilsMessenger != VK_NULL_HANDLE);
+		assert(m_Context.instace && m_DebugUtilsMessenger);
 
 		auto vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_Context.instace, "vkDestroyDebugUtilsMessengerEXT"));
 
 		vkDestroyDebugUtilsMessengerEXT(m_Context.instace, m_DebugUtilsMessenger, nullptr);
 	}
 
-	RenderDevice* RenderDevice::Create(const RenderDeviceCreateInfo& createInfo)
+	RenderDeviceVk* RenderDeviceVk::Create(const RenderDeviceDesc& desc)
 	{
-		auto renderDevice = new RenderDevice();
-		renderDevice->m_Context.messageCallBack = createInfo.messageCallBack;
+		auto renderDevice = new RenderDeviceVk();
+		renderDevice->m_Context.messageCallBack = desc.messageCallBack;
 
-		if (!renderDevice->CreateInstance(createInfo.enableValidationLayer))
+		if (!renderDevice->CreateInstance(desc.enableValidationLayer))
 		{
 			return nullptr;
 		}
 
-		if (createInfo.enableValidationLayer)
+		if (desc.enableValidationLayer)
 		{
 			auto vkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(renderDevice->m_Context.instace, "vkCreateDebugUtilsMessengerEXT"));
 
@@ -291,25 +289,26 @@ namespace rhi
 		return nullptr;
 	}
 
-	static void CreateDefaultImageView(VkDevice device, Texture& texture, const TextureDesc& desc)
+	static void CreateDefaultImageView(VkDevice device, ITexture& texture, const TextureDesc& desc)
 	{
+		TextureVk& tex = static_cast<TextureVk&>(texture);
 		VkImageViewCreateInfo viewCreateInfo{};
 		viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		viewCreateInfo.viewType = GetVkImageViewType(desc.dimension);
-		viewCreateInfo.format = texture.format;
-		viewCreateInfo.image = texture.image;
-		viewCreateInfo.subresourceRange.aspectMask = GetVkAspectMask(texture.format);
+		viewCreateInfo.format = tex.format;
+		viewCreateInfo.image = tex.image;
+		viewCreateInfo.subresourceRange.aspectMask = GetVkAspectMask(tex.format);
 		viewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		viewCreateInfo.subresourceRange.layerCount = desc.arraySize;
 		viewCreateInfo.subresourceRange.baseMipLevel = 0;
 		viewCreateInfo.subresourceRange.levelCount = desc.mipLevels;
-		VkResult res = vkCreateImageView(device, &viewCreateInfo, nullptr, &texture.view);
+		VkResult res = vkCreateImageView(device, &viewCreateInfo, nullptr, &tex.view);
 		ASSERT_VK_SUCCESS(res);
 	}
 
-	Texture* RenderDevice::CreateTexture(const TextureDesc& desc)
+	ITexture* RenderDeviceVk::CreateTexture(const TextureDesc& desc)
 	{
-		Texture* tex = new Texture(m_Context, m_Allocator);
+		TextureVk* tex = new TextureVk(m_Context, m_Allocator);
 		tex->managed = true;
 		tex->format = GetVkFormat(desc.format);
 
@@ -339,10 +338,10 @@ namespace rhi
 		return tex;
 	}
 
-	Texture* RenderDevice::CreateTexture(const TextureDesc& desc, VkImage imageHandle)
+	ITexture* RenderDeviceVk::CreateTexture(const TextureDesc& desc, VkImage image)
 	{
-		Texture* tex = new Texture(m_Context, m_Allocator);
-		tex->image = imageHandle;
+		TextureVk* tex = new TextureVk(m_Context, m_Allocator);
+		tex->image = image;
 		tex->managed = false;
 		tex->format = GetVkFormat(desc.format);
 
@@ -351,4 +350,3 @@ namespace rhi
 		return tex;
 	}
 }
-

@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "Resource.h"
+
 namespace rhi
 {
 	enum class TextureDimension : uint8_t
@@ -127,6 +129,7 @@ namespace rhi
 
 	class ITexture
 	{
+	public:
 		virtual ~ITexture() = default;
 
 	};

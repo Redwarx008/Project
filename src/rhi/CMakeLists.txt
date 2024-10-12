@@ -80,19 +80,23 @@ ELSE()
 ENDIF()
 
 set(interface_rhi 
-	include/IRenderDevice.h "include/ITexture.h")
+	"include/rhi/RenderDevice.h"
+	"include/rhi/Texture.h"
+	"include/rhi/Resource.h"
+	"include/rhi/Rhi.h" "include/rhi/SwapChain.h")
 
 set(src_vk
-	src/VulkanVma.cpp
-	src/RenderDevice.h
-	src/RenderDevice.cpp "src/Texture.h" "src/Texture.cpp")
+	"src/Vma.cpp"
+	"src/RenderDeviceVk.h"
+	"src/RenderDeviceVk.cpp"
+	"src/TextureVk.h" 
+	"src/TextureVk.cpp"
+	"src/ResourceVk.h" "src/CommonVk.h" "src/SwapChainVk.h" "src/RhiVk.cpp")
 
 add_library(rhi "")
 
-target_sources(rhi
-	PUBLIC
+target_sources(rhi	PRIVATE
 				${interface_rhi}
-	PRIVATE
 				${src_vk})
 
 target_include_directories(rhi PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> )

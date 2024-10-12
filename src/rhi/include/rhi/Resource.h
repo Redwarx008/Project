@@ -1,30 +1,12 @@
 #pragma once
 
-#include <functional>
-
-#include <vk_mem_alloc.h>
+#include <cstdint>
 
 #define ASSERT_VK_SUCCESS(res) assert((res) == VK_SUCCESS)
 
 namespace rhi
 {
-    enum class MessageSeverity : uint8_t
-    {
-        Verbose,
-        Info,
-        Warning,
-        Error,
-        Fatal
-    };
 
-    using MessageCallback = std::function<void(MessageSeverity, const char*)>;
-
-	class MemoryResource
-	{
-	public:
-		bool managed = true;
-		VmaAllocation allocation;
-	};
 
     enum class ResourceStates : uint32_t
     {
