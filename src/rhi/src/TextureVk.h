@@ -28,7 +28,7 @@ namespace rhi
 		bool hasStencil : 1;
 	};
 
-	class TextureVk : public ITexture, public MemoryResource
+	class TextureVk final : public ITexture, public MemoryResource
 	{
 	public:
 		TextureVk(const VkContext& context, const VmaAllocator& allocator)
@@ -45,19 +45,19 @@ namespace rhi
 		const VmaAllocator& m_Allocator;
 	};
 
-	const FormatInfo& GetFormatInfo(Format format);
+	const FormatInfo& getFormatInfo(Format format);
 
-	VkImageUsageFlags GetVkImageUsageFlags(const TextureDesc& desc);
+	VkImageUsageFlags getVkImageUsageFlags(const TextureDesc& desc);
 
-	VkImageCreateFlags GetVkImageCreateFlags(TextureDimension dimension);
+	VkImageCreateFlags getVkImageCreateFlags(TextureDimension dimension);
 
-	VkSampleCountFlagBits GetVkImageSampleCount(const TextureDesc& desc);
+	VkSampleCountFlagBits getVkImageSampleCount(const TextureDesc& desc);
 
-	VkImageType GetVkImageType(TextureDimension dimension);
+	VkImageType getVkImageType(TextureDimension dimension);
 
-	VkImageViewType GetVkImageViewType(TextureDimension dimension);
+	VkImageViewType getVkImageViewType(TextureDimension dimension);
 
-	VkFormat GetVkFormat(Format format);
+	VkFormat getVkFormat(Format format);
 
-	VkImageAspectFlags GetVkAspectMask(VkFormat format);
+	VkImageAspectFlags getVkAspectMask(VkFormat format);
 }

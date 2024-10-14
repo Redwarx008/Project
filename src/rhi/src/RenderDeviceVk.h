@@ -5,39 +5,44 @@
 #include <optional>
 #include <vk_mem_alloc.h>
 #include "CommonVk.h"
-
+#include "TextureVk.h"
 
 namespace rhi
 {
+	struct QueueFamilyIndices
+	{
+		std::optional<uint32_t> graphics;
+		std::optional<uint32_t> compute;
+		std::optional<uint32_t> transfer;
+	};
+
 	class RenderDeviceVk final : public IRenderDevice
 	{
 	public:
 		// Internal methods
-		static RenderDeviceVk* Create(const RenderDeviceDesc& desc);
-		MessageCallback GetMessageCallback() { return m_Context.messageCallBack; }
-		ITexture* CreateTexture(const TextureDesc& desc, VkImage image);
+		static RenderDeviceVk* create(const RenderDeviceDesc& desc);
+
+		MessageCallback getMessageCallback() { return m_Context.messageCallBack; }
+		const VkContext& getVkContext() const { return m_Context; }
+		const QueueFamilyIndices& getQueueFamilyIndices() const { return m_QueueFamilyIndices; }
+
+		TextureVk createTextureWithExistImage(const TextureDesc& desc, VkImage image);
 		// Interface implementation
 
-		ITexture* CreateTexture(const TextureDesc& desc) override;
+		ITexture* createTexture(const TextureDesc& desc) override;
 
 	private:
 		RenderDeviceVk() = default;
-		bool CreateInstance(bool enableValidationLayer);
-		bool PickPhysicalDevice();
-		bool CreateDevice();
-		void DestroyDebugUtilsMessenger();
+		bool createInstance(bool enableValidationLayer);
+		bool pickPhysicalDevice();
+		bool createDevice();
+		void destroyDebugUtilsMessenger();
 
 		VkContext m_Context;
 		VmaAllocator m_Allocator;
 
 		VkDebugUtilsMessengerEXT m_DebugUtilsMessenger;
 
-		struct QueueFamilyIndices
-		{
-			std::optional<uint32_t> graphics;
-			std::optional<uint32_t> compute;
-			std::optional<uint32_t> transfer;
-		};
 		QueueFamilyIndices m_QueueFamilyIndices;
 
 		VkQueue m_GraphicsQueue;

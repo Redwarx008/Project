@@ -7,7 +7,7 @@
 
 namespace rhi
 {
-    IRenderDevice* CreateRenderDevice(const RenderDeviceDesc& desc);
+    IRenderDevice* createRenderDevice(const RenderDeviceDesc& desc);
 
-    ISwapChain* CreateSwapChain(uint32_t* width, uint32_t* height, Format swapChainFormat, bool vsync);
+    ISwapChain* createSwapChain(uint32_t* width, uint32_t* height, Format swapChainFormat, bool vsync);
 }

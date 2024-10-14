@@ -30,6 +30,6 @@ namespace rhi
 	public:
 		virtual ~IRenderDevice() = default;
 
-		virtual ITexture* CreateTexture(const TextureDesc& desc) = 0;
+		virtual ITexture* createTexture(const TextureDesc& desc) = 0;
 	};
 }

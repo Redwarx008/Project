@@ -1,14 +1,28 @@
 #pragma once
 
 #include "rhi/SwapChain.h"
+#include "TextureVk.h"
+#include <vulkan/vulkan.h>
+
+#include <vector>
 
 namespace rhi
 {
-	class SwapChainVk : public ISwapChain
+	class RenderDeviceVk;
+
+	class SwapChainVk final : public ISwapChain
 	{
 	public:
-		void SetRenderDevice(RenderDevice& renderDevice);
-		void InitSurface(void* platformHandle, void* platformWindow);
-		void Create(uint32_t* width, uint32_t* height, Format swapChainFormat, bool vsync);
+		static SwapChainVk* create(const SwapChainCreateInfo& swapChainCI);
+	private:
+		SwapChainVk() = default;
+		bool createSurface();
+		bool createVkSwapChain();
+
+		RenderDeviceVk& m_RenderDevice;
+		VkSurfaceKHR m_WindowSurface;
+		VkSwapchainKHR m_SwapChain;
+
+		std::vector<TextureVk> m_SwapChainTextures;
 	};
 }

@@ -83,7 +83,9 @@ set(interface_rhi
 	"include/rhi/RenderDevice.h"
 	"include/rhi/Texture.h"
 	"include/rhi/Resource.h"
-	"include/rhi/Rhi.h" "include/rhi/SwapChain.h")
+	"include/rhi/Rhi.h"
+	"include/rhi/SwapChain.h"
+	"include/rhi/Error.h")
 
 set(src_vk
 	"src/Vma.cpp"
@@ -91,7 +93,7 @@ set(src_vk
 	"src/RenderDeviceVk.cpp"
 	"src/TextureVk.h" 
 	"src/TextureVk.cpp"
-	"src/ResourceVk.h" "src/CommonVk.h" "src/SwapChainVk.h" "src/RhiVk.cpp")
+	"src/ResourceVk.h" "src/CommonVk.h" "src/SwapChainVk.h" "src/RhiVk.cpp" "src/SwapChainVk.cpp")
 
 add_library(rhi "")
 

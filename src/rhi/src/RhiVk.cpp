@@ -4,9 +4,9 @@
 
 namespace rhi
 {
-	IRenderDevice* CreateRenderDevice(const RenderDeviceDesc& desc)
+	IRenderDevice* createRenderDevice(const RenderDeviceDesc& desc)
 	{
-		return RenderDeviceVk::Create(desc);
+		return RenderDeviceVk::create(desc);
 	}
 
 

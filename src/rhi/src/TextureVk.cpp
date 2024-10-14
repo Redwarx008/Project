@@ -148,7 +148,7 @@ namespace rhi
 		{ Format::BC7_UNORM,         "BC7_UNORM",         16,  4,  true,  true,  true,  true,  false, false,  },
 		{ Format::BC7_UNORM_SRGB,    "BC7_UNORM_SRGB",    16,  4,  true,  true,  true,  true,  false, false,  },
 	};
-	const FormatInfo& GetFormatInfo(Format format)
+	const FormatInfo& getFormatInfo(Format format)
 	{
 		static_assert(sizeof(c_FormatInfo) / sizeof(FormatInfo) == size_t(Format::COUNT),
 			"The format info table doesn't have the right number of elements");
@@ -157,9 +157,9 @@ namespace rhi
 		return info;
 	}
 
-	VkImageUsageFlags GetVkImageUsageFlags(const TextureDesc& desc)
+	VkImageUsageFlags getVkImageUsageFlags(const TextureDesc& desc)
 	{
-		const FormatInfo& formatInfo = GetFormatInfo(desc.format);
+		const FormatInfo& formatInfo = getFormatInfo(desc.format);
 
 		VkImageUsageFlags flags = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
@@ -187,7 +187,7 @@ namespace rhi
 		return flags;
 	}
 
-	VkImageCreateFlags GetVkImageCreateFlags(TextureDimension dimension)
+	VkImageCreateFlags getVkImageCreateFlags(TextureDimension dimension)
 	{
 		VkImageCreateFlags flags = 0;
 		if (dimension == TextureDimension::TextureCube ||
@@ -198,7 +198,7 @@ namespace rhi
 		return flags;
 	}
 
-	VkSampleCountFlagBits GetVkImageSampleCount(const TextureDesc& desc)
+	VkSampleCountFlagBits getVkImageSampleCount(const TextureDesc& desc)
 	{
 		switch (desc.sampleCount)
 		{
@@ -229,7 +229,7 @@ namespace rhi
 		}
 	}
 
-	VkImageType GetVkImageType(TextureDimension dimension)
+	VkImageType getVkImageType(TextureDimension dimension)
 	{
 		switch (dimension)
 		{
@@ -252,7 +252,7 @@ namespace rhi
 		}
 	}
 
-	VkImageViewType GetVkImageViewType(TextureDimension dimension)
+	VkImageViewType getVkImageViewType(TextureDimension dimension)
 	{
 		switch (dimension)
 		{
@@ -284,7 +284,7 @@ namespace rhi
 		}
 	}
 
-	VkFormat GetVkFormat(Format format)
+	VkFormat getVkFormat(Format format)
 	{
 		assert(format < Format::COUNT);
 		assert(c_FormatMap[uint32_t(format)].rhiFormat == format);
@@ -292,7 +292,7 @@ namespace rhi
 		return c_FormatMap[uint32_t(format)].vkFormat;
 	}
 
-	VkImageAspectFlags GetVkAspectMask(VkFormat format)
+	VkImageAspectFlags getVkAspectMask(VkFormat format)
 	{
 		switch (format)
 		{
