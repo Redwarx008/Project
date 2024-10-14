@@ -1,7 +1,7 @@
 #include "TextureVk.h"
 
 #include <array>
-
+#include <cassert>
 namespace rhi
 {
 	static const std::array<FormatMapping, size_t(Format::COUNT)> c_FormatMap = { {
@@ -27,8 +27,8 @@ namespace rhi
 		{ Format::RGBA8_UNORM,       VK_FORMAT_R8G8B8A8_UNORM           },
 		{ Format::RGBA8_SNORM,       VK_FORMAT_R8G8B8A8_SNORM           },
 		{ Format::BGRA8_UNORM,       VK_FORMAT_B8G8R8A8_UNORM           },
-		{ Format::SRGBA8_UNORM,      VK_FORMAT_R8G8B8A8_SRGB            },
-		{ Format::SBGRA8_UNORM,      VK_FORMAT_B8G8R8A8_SRGB            },
+		{ Format::RGBA8_SRGB,        VK_FORMAT_R8G8B8A8_SRGB            },
+		{ Format::BGRA8_SRGB,		 VK_FORMAT_B8G8R8A8_SRGB            },
 		{ Format::R10G10B10A2_UNORM, VK_FORMAT_A2B10G10R10_UNORM_PACK32 },
 		{ Format::R11G11B10_FLOAT,   VK_FORMAT_B10G11R11_UFLOAT_PACK32  },
 		{ Format::RG16_UINT,         VK_FORMAT_R16G16_UINT              },
@@ -53,12 +53,10 @@ namespace rhi
 		{ Format::RGBA32_UINT,       VK_FORMAT_R32G32B32A32_UINT        },
 		{ Format::RGBA32_SINT,       VK_FORMAT_R32G32B32A32_SINT        },
 		{ Format::RGBA32_FLOAT,      VK_FORMAT_R32G32B32A32_SFLOAT      },
-		{ Format::D16,               VK_FORMAT_D16_UNORM                },
-		{ Format::D24S8,             VK_FORMAT_D24_UNORM_S8_UINT        },
-		{ Format::X24G8_UINT,        VK_FORMAT_D24_UNORM_S8_UINT        },
-		{ Format::D32,               VK_FORMAT_D32_SFLOAT               },
-		{ Format::D32S8,             VK_FORMAT_D32_SFLOAT_S8_UINT       },
-		{ Format::X32G8_UINT,        VK_FORMAT_D32_SFLOAT_S8_UINT       },
+		{ Format::D16_UNORM,         VK_FORMAT_D16_UNORM                },
+		{ Format::D24_UNORM_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT        },
+		{ Format::D32_UNORM,         VK_FORMAT_D32_SFLOAT               },
+		{ Format::D32_UNORM_S8_UINT, VK_FORMAT_D32_SFLOAT_S8_UINT       },
 		{ Format::BC1_UNORM,         VK_FORMAT_BC1_RGBA_UNORM_BLOCK     },
 		{ Format::BC1_UNORM_SRGB,    VK_FORMAT_BC1_RGBA_SRGB_BLOCK      },
 		{ Format::BC2_UNORM,         VK_FORMAT_BC2_UNORM_BLOCK          },
@@ -101,8 +99,8 @@ namespace rhi
 		{ Format::RGBA8_UNORM,       "RGBA8_UNORM",       4,   1,  true,  true,  true,  true,  false, false,  },
 		{ Format::RGBA8_SNORM,       "RGBA8_SNORM",       4,   1,  true,  true,  true,  true,  false, false,  },
 		{ Format::BGRA8_UNORM,       "BGRA8_UNORM",       4,   1,  true,  true,  true,  true,  false, false,  },
-		{ Format::SRGBA8_UNORM,      "SRGBA8_UNORM",      4,   1,  true,  true,  true,  true,  false, false,  },
-		{ Format::SBGRA8_UNORM,      "SBGRA8_UNORM",      4,   1,  true,  true,  true,  true,  false, false,  },
+		{ Format::RGBA8_SRGB,      "RGBA8_SRGB",      4,   1,  true,  true,  true,  true,  false, false,  },
+		{ Format::BGRA8_SRGB,      "BGRA8_SRGB",      4,   1,  true,  true,  true,  true,  false, false,  },
 		{ Format::R10G10B10A2_UNORM, "R10G10B10A2_UNORM", 4,   1,  true,  true,  true,  true,  false, false,  },
 		{ Format::R11G11B10_FLOAT,   "R11G11B10_FLOAT",   4,   1,  true,  true,  true,  false, false, false,  },
 		{ Format::RG16_UINT,         "RG16_UINT",         4,   1,  true,  true,  false, false, false, false,  },
@@ -127,12 +125,10 @@ namespace rhi
 		{ Format::RGBA32_UINT,       "RGBA32_UINT",       16,  1,  true,  true,  true,  true,  false, false,  },
 		{ Format::RGBA32_SINT,       "RGBA32_SINT",       16,  1,  true,  true,  true,  true,  false, false,  },
 		{ Format::RGBA32_FLOAT,      "RGBA32_FLOAT",      16,  1,  true,  true,  true,  true,  false, false,  },
-		{ Format::D16,               "D16",               2,   1,  false, false, false, false, true,  false,  },
-		{ Format::D24S8,             "D24S8",             4,   1,  false, false, false, false, true,  true,   },
-		{ Format::X24G8_UINT,        "X24G8_UINT",        4,   1,  false, false, false, false, false, true,   },
-		{ Format::D32,               "D32",               4,   1,  false, false, false, false, true,  false,  },
-		{ Format::D32S8,             "D32S8",             8,   1,  false, false, false, false, true,  true,   },
-		{ Format::X32G8_UINT,        "X32G8_UINT",        8,   1,  false, false, false, false, false, true,   },
+		{ Format::D16_UNORM,         "D16_UNORM",         2,   1,  false, false, false, false, true,  false,  },
+		{ Format::D24_UNORM_S8_UINT, "D24_UNORM_S8_UINT", 4,   1,  false, false, false, false, true,  true,   },
+		{ Format::D32_UNORM,         "D32_UNORM",         4,   1,  false, false, false, false, true,  false,  },
+		{ Format::D32_UNORM_S8_UINT, "D32_UNORM_S8_UINT", 8,   1,  false, false, false, false, true,  true,   },
 		{ Format::BC1_UNORM,         "BC1_UNORM",         8,   4,  true,  true,  true,  true,  false, false,  },
 		{ Format::BC1_UNORM_SRGB,    "BC1_UNORM_SRGB",    8,   4,  true,  true,  true,  true,  false, false,  },
 		{ Format::BC2_UNORM,         "BC2_UNORM",         16,  4,  true,  true,  true,  true,  false, false,  },

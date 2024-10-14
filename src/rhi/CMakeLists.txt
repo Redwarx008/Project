@@ -85,7 +85,12 @@ set(interface_rhi
 	"include/rhi/Resource.h"
 	"include/rhi/Rhi.h"
 	"include/rhi/SwapChain.h"
-	"include/rhi/Error.h")
+	
+	)
+set(common_rhi
+	"include/rhi/common/Error.h"
+	"include/rhi/common/Utils.h"
+	)
 
 set(src_vk
 	"src/Vma.cpp"
@@ -93,13 +98,19 @@ set(src_vk
 	"src/RenderDeviceVk.cpp"
 	"src/TextureVk.h" 
 	"src/TextureVk.cpp"
-	"src/ResourceVk.h" "src/CommonVk.h" "src/SwapChainVk.h" "src/RhiVk.cpp" "src/SwapChainVk.cpp")
+	"src/ResourceVk.h"
+	"src/ContextVk.h"
+	"src/SwapChainVk.h"
+	"src/RhiVk.cpp"
+	"src/SwapChainVk.cpp"
+	 "src/ErrorVk.h")
 
 add_library(rhi "")
 
 target_sources(rhi	PRIVATE
 				${interface_rhi}
-				${src_vk})
+				${common_rhi}
+				${src_vk} "src/ErrorVk.h")
 
 target_include_directories(rhi PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> )
 

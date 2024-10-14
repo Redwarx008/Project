@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "TextureVk.h"
+#include "ErrorVk.h"
 
 namespace rhi
 {
@@ -12,7 +13,7 @@ namespace rhi
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData)
 	{
-		RenderDeviceVk* rd = reinterpret_cast<RenderDeviceVk*>(pUserData);
+		//RenderDeviceVk* rd = reinterpret_cast<RenderDeviceVk*>(pUserData);
 
 		MessageSeverity serverity = MessageSeverity::Info;
 
@@ -37,8 +38,14 @@ namespace rhi
 			debugMessage << "[" << pCallbackData->messageIdNumber << "] : " << pCallbackData->pMessage;
 		}
 
-		rd->getMessageCallback()(serverity, debugMessage.str().c_str());
-
+		if (g_DebugMessageCallback)
+		{
+			g_DebugMessageCallback(serverity, debugMessage.str().c_str());
+		}
+		else
+		{
+			std::cerr << debugMessage.str().c_str();
+		}
 		// The return value of this callback controls whether the Vulkan call that caused the validation message will be aborted or not
 		// We return VK_FALSE as we DON'T want Vulkan calls that cause a validation message to abort
 		// If you instead want to have calls abort, pass in VK_TRUE and the function will return VK_ERROR_VALIDATION_FAILED_EXT
@@ -108,7 +115,7 @@ namespace rhi
 				instanceCreateInfo.enabledLayerCount = 1;
 			}
 			else {
-				m_Context.Warning("Validation layer VK_LAYER_KHRONOS_validation not present, validation is disabled");
+				LOG_ERROR("Validation layer VK_LAYER_KHRONOS_validation not present, validation is disabled");
 			}
 		}
 
@@ -118,7 +125,7 @@ namespace rhi
 		VkResult result = vkCreateInstance(&instanceCreateInfo, nullptr, &m_Context.instace);
 		if (result != VK_SUCCESS)
 		{
-			m_Context.Error("Failed to create a Vulkan instance");
+			LOG_ERROR("Failed to create a Vulkan instance");
 			return false;
 		}
 		return true;
@@ -134,7 +141,7 @@ namespace rhi
 
 		if (deviceCount == 0)
 		{
-			m_Context.Error("No device with Vulkan support found");
+			LOG_ERROR("No device with Vulkan support found");
 			return false;
 		}
 
@@ -234,7 +241,7 @@ namespace rhi
 		VkResult result = vkCreateDevice(m_Context.physicalDevice, &deviceCreateInfo, nullptr, &m_Context.device);
 		if (result != VK_SUCCESS)
 		{
-			m_Context.Error("Failed to create a Vulkan device");
+			LOG_ERROR("Failed to create a Vulkan device");
 			return false;
 		}
 
@@ -256,7 +263,7 @@ namespace rhi
 	RenderDeviceVk* RenderDeviceVk::create(const RenderDeviceDesc& desc)
 	{
 		auto renderDevice = new RenderDeviceVk();
-		renderDevice->m_Context.messageCallBack = desc.messageCallBack;
+		g_DebugMessageCallback = desc.messageCallback;
 
 		if (!renderDevice->createInstance(desc.enableValidationLayer))
 		{
@@ -338,14 +345,14 @@ namespace rhi
 		return tex;
 	}
 
-	TextureVk RenderDeviceVk::createTextureWithExistImage(const TextureDesc& desc, VkImage image)
+	TextureVk* RenderDeviceVk::createTextureWithExistImage(const TextureDesc& desc, VkImage image)
 	{
-		TextureVk tex{ m_Context, m_Allocator };
-		tex.image = image;
-		tex.managed = false;
-		tex.format = getVkFormat(desc.format);
+		auto tex = new TextureVk{ m_Context, m_Allocator };
+		tex->image = image;
+		tex->managed = false;
+		tex->format = getVkFormat(desc.format);
 
-		CreateDefaultImageView(m_Context.device, tex, desc);
+		CreateDefaultImageView(m_Context.device, *tex, desc);
 
 		return tex;
 	}

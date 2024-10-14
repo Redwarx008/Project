@@ -4,7 +4,7 @@
 
 #include "rhi/Texture.h"
 #include "ResourceVk.h"
-#include "CommonVk.h"
+#include "ContextVk.h"
 
 namespace rhi
 {
@@ -31,17 +31,17 @@ namespace rhi
 	class TextureVk final : public ITexture, public MemoryResource
 	{
 	public:
-		TextureVk(const VkContext& context, const VmaAllocator& allocator)
+		TextureVk(const ContextVk& context, const VmaAllocator& allocator)
 			:m_Context(context),
 			m_Allocator(allocator) {}
 		TextureVk() = default;
 		~TextureVk() = default;
 		TextureDesc desc;
-		VkImage image;
-		VkImageView	view;
-		VkFormat format;
+		VkImage image = VK_NULL_HANDLE;
+		VkImageView	view = VK_NULL_HANDLE;
+		VkFormat format = VK_FORMAT_UNDEFINED;
 	private:
-		const VkContext& m_Context;
+		const ContextVk& m_Context;
 		const VmaAllocator& m_Allocator;
 	};
 

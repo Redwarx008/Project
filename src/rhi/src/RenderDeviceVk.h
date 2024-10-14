@@ -4,7 +4,7 @@
 
 #include <optional>
 #include <vk_mem_alloc.h>
-#include "CommonVk.h"
+#include "ContextVk.h"
 #include "TextureVk.h"
 
 namespace rhi
@@ -22,11 +22,10 @@ namespace rhi
 		// Internal methods
 		static RenderDeviceVk* create(const RenderDeviceDesc& desc);
 
-		MessageCallback getMessageCallback() { return m_Context.messageCallBack; }
-		const VkContext& getVkContext() const { return m_Context; }
+		const ContextVk& getVkContext() const { return m_Context; }
 		const QueueFamilyIndices& getQueueFamilyIndices() const { return m_QueueFamilyIndices; }
 
-		TextureVk createTextureWithExistImage(const TextureDesc& desc, VkImage image);
+		TextureVk* createTextureWithExistImage(const TextureDesc& desc, VkImage image);
 		// Interface implementation
 
 		ITexture* createTexture(const TextureDesc& desc) override;
@@ -38,7 +37,7 @@ namespace rhi
 		bool createDevice();
 		void destroyDebugUtilsMessenger();
 
-		VkContext m_Context;
+		ContextVk m_Context;
 		VmaAllocator m_Allocator;
 
 		VkDebugUtilsMessengerEXT m_DebugUtilsMessenger;
