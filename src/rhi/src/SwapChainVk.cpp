@@ -11,7 +11,7 @@ namespace rhi
 		return nullptr;
 	}
 
-	bool SwapChainVk::createSurface(void* platformHandle, void* platformWindow)
+	void SwapChainVk::createSurface(void* platformHandle, void* platformWindow)
 	{
 		VkResult err = VK_SUCCESS;
 
@@ -21,24 +21,18 @@ namespace rhi
 		surfaceCreateInfo.hwnd = (HWND)platformWindow;
 		err = vkCreateWin32SurfaceKHR(m_RenderDevice.getVkContext().instace, &surfaceCreateInfo, nullptr, &m_WindowSurface);
 
-		if (err != VK_SUCCESS)
-		{
-			LOG_ERROR("Could not create surface!");
-			return false;
-		}
+		CHECK_VK_RESULT(err, "Could not create surface!");
 
 		VkBool32 isGraphicsSupportPresent;
 		vkGetPhysicalDeviceSurfaceSupportKHR(m_RenderDevice.getVkContext().physicalDevice, m_RenderDevice.getQueueFamilyIndices().graphics.value(), m_WindowSurface, &isGraphicsSupportPresent);
 		if (!isGraphicsSupportPresent)
 		{
 			LOG_ERROR("Could not support present!");
-			return false;
+			return;
 		}
-
-		return true;
 	}
 
-	bool SwapChainVk::createVkSwapChain()
+	void SwapChainVk::createVkSwapChain()
 	{
 		// Get list of supported surface formats
 		uint32_t formatCount;
@@ -50,7 +44,7 @@ namespace rhi
 
 		VkSurfaceFormatKHR selectedFormat = surfaceFormats[0];
 		std::vector<VkFormat> preferredImageFormats = {
-			rhi::getVkFormat(m_ColorFormat),
+			rhi::textureFormatToVkFormat(m_ColorFormat),
 			VK_FORMAT_B8G8R8A8_UNORM,
 			VK_FORMAT_R8G8B8A8_UNORM,
 		};
@@ -60,6 +54,13 @@ namespace rhi
 				selectedFormat = availableFormat;
 				break;
 			}
+		}
+
+		if (selectedFormat.format != rhi::textureFormatToVkFormat(m_ColorFormat))
+		{
+			std::stringstream ss;
+			ss << "Requested color format is not supported and will be replaced by " << getFormatInfo(vkFormatToTextureFormat(selectedFormat.format)).name;
+			logMsg(MessageSeverity::Warning, __FUNCTION__, __LINE__, ss);
 		}
 
 		// Store the current swap chain handle so we can use it later on to ease up recreation
@@ -182,10 +183,7 @@ namespace rhi
 
 		VkResult err = vkCreateSwapchainKHR(m_RenderDevice.getVkContext().device, &swapchainCI, nullptr, &m_SwapChain);
 
-		if (err != VK_SUCCESS)
-		{
-			LOG_ERROR("Could not create swapchain!");
-		}
+		CHECK_VK_RESULT(err, "Could not create swapchain!");
 
 		// If an existing swap chain is re-created, destroy the old swap chain
 		// This also cleans up all the presentable images
@@ -200,7 +198,8 @@ namespace rhi
 		vkGetSwapchainImagesKHR(m_RenderDevice.getVkContext().device, m_SwapChain, &imageCount, NULL);
 		std::vector<VkImage> images;
 		err = vkGetSwapchainImagesKHR(m_RenderDevice.getVkContext().device, m_SwapChain, &imageCount, images.data());
-		CHECK_VK_ERROR(err, "Failed to get swap chain images");
+		CHECK_VK_RESULT(err, "Failed to get swap chain images");
+
 		m_ColorTextures.resize(imageCount);
 
 		TextureDesc colorTextureDesc;
@@ -208,10 +207,10 @@ namespace rhi
 		colorTextureDesc.height = swapchainExtent.height;
 		colorTextureDesc.format = m_ColorFormat;
 		colorTextureDesc.initialState = rhi::ResourceStates::Present;
-		for (auto& texture : m_ColorTextures)
+		for (int i = 0; i < m_ColorTextures.size(); ++i)
 		{
-			//texture = std::unique_ptr<ITexture>(m_RenderDevice.createTextureWithExistImage(colorTextureDesc, )
+			m_ColorTextures[i] = std::unique_ptr<ITexture>(m_RenderDevice.createTextureWithExistImage(colorTextureDesc, images[i]));
 		}
-		return true;
+
 	}
 }

@@ -317,7 +317,7 @@ namespace rhi
 	{
 		TextureVk* tex = new TextureVk(m_Context, m_Allocator);
 		tex->managed = true;
-		tex->format = getVkFormat(desc.format);
+		tex->format = textureFormatToVkFormat(desc.format);
 
 		VkImageCreateInfo imageCreateInfo{};
 		imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -350,7 +350,7 @@ namespace rhi
 		auto tex = new TextureVk{ m_Context, m_Allocator };
 		tex->image = image;
 		tex->managed = false;
-		tex->format = getVkFormat(desc.format);
+		tex->format = textureFormatToVkFormat(desc.format);
 
 		CreateDefaultImageView(m_Context.device, *tex, desc);
 

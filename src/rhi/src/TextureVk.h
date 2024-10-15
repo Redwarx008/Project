@@ -8,15 +8,13 @@
 
 namespace rhi
 {
-	struct FormatMapping
-	{
-		Format rhiFormat;
-		VkFormat vkFormat;
-	};
+
+
+
 
 	struct FormatInfo
 	{
-		Format format;
+		TextureFormat format;
 		const char* name;
 		uint8_t bytesPerBlock;
 		uint8_t blockSize;
@@ -45,7 +43,7 @@ namespace rhi
 		const VmaAllocator& m_Allocator;
 	};
 
-	const FormatInfo& getFormatInfo(Format format);
+	const FormatInfo& getFormatInfo(TextureFormat format);
 
 	VkImageUsageFlags getVkImageUsageFlags(const TextureDesc& desc);
 
@@ -57,7 +55,9 @@ namespace rhi
 
 	VkImageViewType getVkImageViewType(TextureDimension dimension);
 
-	VkFormat getVkFormat(Format format);
-
 	VkImageAspectFlags getVkAspectMask(VkFormat format);
+
+	VkFormat textureFormatToVkFormat(TextureFormat format);
+
+	TextureFormat vkFormatToTextureFormat(VkFormat format);
 }

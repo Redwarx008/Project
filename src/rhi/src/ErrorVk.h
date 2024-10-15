@@ -43,11 +43,13 @@ namespace rhi
 	}
 
 
-#define CHECK_VK_ERROR(err, ...)                                                                                                                                 \
+#define CHECK_VK_RESULT(err, ...)                                                                                                                                 \
     {                                                                                                                                                            \
         if (err != VK_SUCCESS)                                                                                                                                   \
         {                                                                                                                                                        \
-            logMsg(MessageSeverity::Error, __FUNCTION__, __LINE__, ##__VA_ARGS__, "\nVK Error Code : ", vkErrorToString(err));									 \
+            logMsg(MessageSeverity::Error, __FUNCTION__, __LINE__, __VA_ARGS__, "\nVK Error Code : ", vkErrorToString(err));									 \
+            assert(err == VK_SUCCESS);                                                                                                                                                     \
         }                                                                                                                                                        \
     }
+
 }

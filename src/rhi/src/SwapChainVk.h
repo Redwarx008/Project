@@ -17,13 +17,13 @@ namespace rhi
 		static SwapChainVk* create(const SwapChainCreateInfo& swapChainCI);
 	private:
 		SwapChainVk() = default;
-		bool createSurface(void* platformHandle, void* platformWindow);
-		bool createVkSwapChain();
+		void createSurface(void* platformHandle, void* platformWindow);
+		void createVkSwapChain();
 
 		uint32_t m_Width;
 		uint32_t m_Height;
 
-		Format m_ColorFormat;
+		TextureFormat m_ColorFormat;
 
 		bool m_VSyncEnabled;
 

@@ -29,5 +29,5 @@ namespace rhi
 
     IRenderDevice* createRenderDevice(const RenderDeviceDesc& desc);
 
-    ISwapChain* createSwapChain(uint32_t* width, uint32_t* height, Format swapChainFormat, bool vsync);
+    ISwapChain* createSwapChain(uint32_t* width, uint32_t* height, TextureFormat swapChainFormat, bool vsync);
 }
