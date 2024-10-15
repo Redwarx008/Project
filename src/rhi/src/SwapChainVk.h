@@ -14,9 +14,15 @@ namespace rhi
 	class SwapChainVk final : public ISwapChain
 	{
 	public:
+		~SwapChainVk() {}
 		static SwapChainVk* create(const SwapChainCreateInfo& swapChainCI);
+
+		void present() override;
+		void resize() override;
+		ITexture* getCurrentRenderTarget() override;
+		ITexture* getDepthStencil() override;
 	private:
-		SwapChainVk() = default;
+		SwapChainVk(RenderDeviceVk& renderDevice);
 		void createSurface(void* platformHandle, void* platformWindow);
 		void createVkSwapChain();
 
@@ -30,6 +36,10 @@ namespace rhi
 		RenderDeviceVk& m_RenderDevice;
 		VkSurfaceKHR m_WindowSurface;
 		VkSwapchainKHR m_SwapChain;
+
+		uint32_t m_CurrentFrameInFlight = 0;
+
+		std::vector<VkSemaphore> m_ImageAvailableSemaphores;
 
 		std::vector<std::unique_ptr<ITexture>> m_ColorTextures;
 	};

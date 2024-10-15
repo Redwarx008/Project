@@ -6,9 +6,15 @@
 
 namespace rhi
 {
+	SwapChainVk::SwapChainVk(RenderDeviceVk& renderDevice)
+		:m_RenderDevice(renderDevice)
+	{
+
+	}
+
 	SwapChainVk* SwapChainVk::create(const SwapChainCreateInfo& swapChainCI)
 	{
-		return nullptr;
+		SwapChainVk* swapChain = new SwapChainVk(static_cast<RenderDeviceVk&>(swapChainCI.renderDevice));
 	}
 
 	void SwapChainVk::createSurface(void* platformHandle, void* platformWindow)
