@@ -12,9 +12,26 @@ namespace rhi
 
 	}
 
+	SwapChainVk::~SwapChainVk()
+	{
+		for (auto& semaphore : m_ImageAvailableSemaphores)
+		{
+			vkDestroySemaphore(m_RenderDevice.getVkContext().device, semaphore, nullptr);
+		}
+	}
+
 	SwapChainVk* SwapChainVk::create(const SwapChainCreateInfo& swapChainCI)
 	{
 		SwapChainVk* swapChain = new SwapChainVk(static_cast<RenderDeviceVk&>(swapChainCI.renderDevice));
+		swapChain->m_ColorFormat = swapChainCI.preferredColorFormat;
+		swapChain->m_DepthStencilFormat = swapChainCI.preferredDepthStencilFormat;
+		swapChain->m_Width = swapChainCI.initialWidth;
+		swapChain->m_Height = swapChainCI.initialHeight;
+
+		swapChain->createSurface(swapChainCI.platformHandle, swapChainCI.platformWindow);
+		swapChain->createVkSwapChain();
+
+		return swapChain;
 	}
 
 	void SwapChainVk::createSurface(void* platformHandle, void* platformWindow)
@@ -66,7 +83,7 @@ namespace rhi
 		{
 			std::stringstream ss;
 			ss << "Requested color format is not supported and will be replaced by " << getFormatInfo(vkFormatToTextureFormat(selectedFormat.format)).name;
-			logMsg(MessageSeverity::Warning, __FUNCTION__, __LINE__, ss);
+			logMsg(MessageSeverity::Warning, __FUNCTION__, __LINE__, ss.str().c_str());
 		}
 
 		// Store the current swap chain handle so we can use it later on to ease up recreation
@@ -215,8 +232,33 @@ namespace rhi
 		colorTextureDesc.initialState = rhi::ResourceStates::Present;
 		for (int i = 0; i < m_ColorTextures.size(); ++i)
 		{
-			m_ColorTextures[i] = std::unique_ptr<ITexture>(m_RenderDevice.createTextureWithExistImage(colorTextureDesc, images[i]));
+			TextureVk* colorTex = m_RenderDevice.createTextureWithExistImage(colorTextureDesc, images[i]);
+			m_ColorTextures[i] = std::unique_ptr<ITexture>(colorTex);
 		}
+		// The semaphore needs to be rebuilt only if the number of swap chain images changes when the swapchain is rebuilt.
+		if (m_ImageAvailableSemaphores.size() != imageCount)
+		{
+			for (auto& semaphore : m_ImageAvailableSemaphores)
+			{
+				vkDestroySemaphore(m_RenderDevice.getVkContext().device, semaphore, nullptr);
+			}
+			m_ImageAvailableSemaphores.resize(imageCount);
 
+			VkSemaphoreCreateInfo semaphoreCI{};
+			semaphoreCI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+			for (int i = 0; i < m_ImageAvailableSemaphores.size(); i++)
+			{
+				vkCreateSemaphore(m_RenderDevice.getVkContext().device, &semaphoreCI, nullptr, &m_ImageAvailableSemaphores[i]);
+			}
+		}
+	}
+
+	void SwapChainVk::BeginFrame()
+	{
+		const VkSemaphore& semaphore = m_ImageAvailableSemaphores[m_CurrentFrameInFlight];
+
+		VkResult err = vkAcquireNextImageKHR(m_RenderDevice.getVkContext().device,
+			m_SwapChain, UINT64_MAX, semaphore, nullptr, &m_SwapChainImageIndex);
+		
 	}
 }

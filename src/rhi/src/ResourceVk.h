@@ -10,6 +10,6 @@ namespace rhi
 	{
 	public:
 		bool managed = true;
-		VmaAllocation allocation;
+		VmaAllocation allocation = nullptr;
 	};
 }

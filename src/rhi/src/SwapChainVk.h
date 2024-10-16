@@ -2,6 +2,7 @@
 
 #include "rhi/SwapChain.h"
 #include "TextureVk.h"
+
 #include <vulkan/vulkan.h>
 
 #include <vector>
@@ -14,9 +15,9 @@ namespace rhi
 	class SwapChainVk final : public ISwapChain
 	{
 	public:
-		~SwapChainVk() {}
+		~SwapChainVk();
 		static SwapChainVk* create(const SwapChainCreateInfo& swapChainCI);
-
+		void BeginFrame() override;
 		void present() override;
 		void resize() override;
 		ITexture* getCurrentRenderTarget() override;
@@ -26,18 +27,20 @@ namespace rhi
 		void createSurface(void* platformHandle, void* platformWindow);
 		void createVkSwapChain();
 
-		uint32_t m_Width;
-		uint32_t m_Height;
+		uint32_t m_Width = 0;
+		uint32_t m_Height = 0;
 
-		TextureFormat m_ColorFormat;
+		TextureFormat m_ColorFormat {TextureFormat::UNKNOWN};
+		TextureFormat m_DepthStencilFormat{ TextureFormat::UNKNOWN };
 
-		bool m_VSyncEnabled;
+		bool m_VSyncEnabled = false;
 
 		RenderDeviceVk& m_RenderDevice;
-		VkSurfaceKHR m_WindowSurface;
-		VkSwapchainKHR m_SwapChain;
+		VkSurfaceKHR m_WindowSurface = VK_NULL_HANDLE;
+		VkSwapchainKHR m_SwapChain = VK_NULL_HANDLE;
 
 		uint32_t m_CurrentFrameInFlight = 0;
+		uint32_t m_SwapChainImageIndex = UINT32_MAX;
 
 		std::vector<VkSemaphore> m_ImageAvailableSemaphores;
 

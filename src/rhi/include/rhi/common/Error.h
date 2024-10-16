@@ -55,6 +55,4 @@ namespace rhi
          logMsg(MessageSeverity::Warning, __FUNCTION__, __LINE__, ##__VA_ARGS__);                \
 	} while (false)																				 \
 
-
-
 }

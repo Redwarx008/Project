@@ -293,10 +293,24 @@ namespace rhi
 		{
 			return nullptr;
 		}
+
+		VmaAllocatorCreateInfo allocatorCreateInfo = {};
+		allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+		allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_3;
+		allocatorCreateInfo.physicalDevice = renderDevice->m_Context.physicalDevice;
+		allocatorCreateInfo.device = renderDevice->m_Context.device;
+		allocatorCreateInfo.instance = renderDevice->m_Context.instace;
+		vmaCreateAllocator(&allocatorCreateInfo, &renderDevice->m_Allocator);
 		return nullptr;
 	}
 
-	static void CreateDefaultImageView(VkDevice device, ITexture& texture, const TextureDesc& desc)
+	RenderDeviceVk::~RenderDeviceVk()
+	{
+		destroyDebugUtilsMessenger();
+		vmaDestroyAllocator(m_Allocator);
+	}
+
+	static void createDefaultImageView(VkDevice device, ITexture& texture, const TextureDesc& desc)
 	{
 		TextureVk& tex = static_cast<TextureVk&>(texture);
 		VkImageViewCreateInfo viewCreateInfo{};
@@ -310,13 +324,12 @@ namespace rhi
 		viewCreateInfo.subresourceRange.baseMipLevel = 0;
 		viewCreateInfo.subresourceRange.levelCount = desc.mipLevels;
 		VkResult res = vkCreateImageView(device, &viewCreateInfo, nullptr, &tex.view);
-		ASSERT_VK_SUCCESS(res);
+		CHECK_VK_RESULT(res, "Could not create vkImageView");
 	}
 
 	ITexture* RenderDeviceVk::createTexture(const TextureDesc& desc)
 	{
 		TextureVk* tex = new TextureVk(m_Context, m_Allocator);
-		tex->managed = true;
 		tex->format = textureFormatToVkFormat(desc.format);
 
 		VkImageCreateInfo imageCreateInfo{};
@@ -333,14 +346,20 @@ namespace rhi
 		imageCreateInfo.samples = getVkImageSampleCount(desc);
 		imageCreateInfo.flags = getVkImageUsageFlags(desc);
 
-		VkResult res = vkCreateImage(m_Context.device, &imageCreateInfo, nullptr, &tex->image);
-		if (res != VK_SUCCESS)
+		// Let the library select the optimal memory type, which will likely have VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT.
+		VmaAllocationCreateInfo allocCreateInfo = {};
+		allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+		allocCreateInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+		allocCreateInfo.priority = 1.0f;
+		VkResult err = vmaCreateImage(m_Allocator, &imageCreateInfo, &allocCreateInfo, &tex->image, &tex->allocation, nullptr);
+		CHECK_VK_RESULT(err, "Could not to create vkImage");
+		if (err != VK_SUCCESS)
 		{
 			delete tex;
 			return nullptr;
 		}
-
-		CreateDefaultImageView(m_Context.device, *tex, desc);
+		tex->managed = true;
+		createDefaultImageView(m_Context.device, *tex, desc);
 
 		return tex;
 	}
@@ -351,9 +370,15 @@ namespace rhi
 		tex->image = image;
 		tex->managed = false;
 		tex->format = textureFormatToVkFormat(desc.format);
+		tex->desc = desc;
 
-		CreateDefaultImageView(m_Context.device, *tex, desc);
+		createDefaultImageView(m_Context.device, *tex, desc);
 
 		return tex;
+	}
+
+	void RenderDeviceVk::setSwapChainImageAvailableSeamaphore(const VkSemaphore& semaophore)
+	{
+		m_SwapChainImgAavailableSemaphore = semaophore;
 	}
 }

@@ -7,8 +7,6 @@
 
 #include "rhi/Rhi.h"
 
-
-
 namespace rhi
 {
     struct ContextVk

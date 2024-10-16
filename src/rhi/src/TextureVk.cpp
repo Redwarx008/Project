@@ -398,4 +398,17 @@ namespace rhi
 			return TextureFormat::UNKNOWN;
 		}
 	}
+
+	TextureVk::~TextureVk()
+	{
+		if (managed && image)
+		{
+			vmaDestroyImage(m_Allocator, image, allocation);
+		}
+
+		if (view)
+		{
+			vkDestroyImageView(m_Context.device, view, nullptr);
+		}
+	}
 }

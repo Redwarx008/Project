@@ -32,13 +32,13 @@ namespace rhi
 		TextureVk(const ContextVk& context, const VmaAllocator& allocator)
 			:m_Context(context),
 			m_Allocator(allocator) {}
-		TextureVk() = default;
-		~TextureVk() = default;
+		~TextureVk();
 		TextureDesc desc;
 		VkImage image = VK_NULL_HANDLE;
 		VkImageView	view = VK_NULL_HANDLE;
 		VkFormat format = VK_FORMAT_UNDEFINED;
 	private:
+		TextureVk() = default;
 		const ContextVk& m_Context;
 		const VmaAllocator& m_Allocator;
 	};

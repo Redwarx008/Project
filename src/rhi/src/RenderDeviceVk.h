@@ -19,11 +19,13 @@ namespace rhi
 	class RenderDeviceVk final : public IRenderDevice
 	{
 	public:
+		~RenderDeviceVk();
 		// Internal methods
 		static RenderDeviceVk* create(const RenderDeviceDesc& desc);
 
 		const ContextVk& getVkContext() const { return m_Context; }
 		const QueueFamilyIndices& getQueueFamilyIndices() const { return m_QueueFamilyIndices; }
+		void setSwapChainImageAvailableSeamaphore(const VkSemaphore& semaphore);
 
 		TextureVk* createTextureWithExistImage(const TextureDesc& desc, VkImage image);
 		// Interface implementation
@@ -47,6 +49,8 @@ namespace rhi
 		VkQueue m_GraphicsQueue;
 		VkQueue m_ComputeQueue;
 		VkQueue m_TransferQueue;
+
+		const VkSemaphore& m_SwapChainImgAavailableSemaphore;
 	};
 }
 
