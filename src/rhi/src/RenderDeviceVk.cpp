@@ -310,6 +310,11 @@ namespace rhi
 		vmaDestroyAllocator(m_Allocator);
 	}
 
+	void RenderDeviceVk::waitIdle()
+	{
+		vkDeviceWaitIdle(m_Context.device);
+	}
+
 	static void createDefaultImageView(VkDevice device, ITexture& texture, const TextureDesc& desc)
 	{
 		TextureVk& tex = static_cast<TextureVk&>(texture);
@@ -344,7 +349,7 @@ namespace rhi
 		imageCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
 		imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageCreateInfo.samples = getVkImageSampleCount(desc);
-		imageCreateInfo.flags = getVkImageUsageFlags(desc);
+		imageCreateInfo.flags = getVkImageCreateFlags(desc.dimension);
 
 		// Let the library select the optimal memory type, which will likely have VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT.
 		VmaAllocationCreateInfo allocCreateInfo = {};

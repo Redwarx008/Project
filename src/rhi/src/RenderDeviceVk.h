@@ -6,6 +6,7 @@
 #include <vk_mem_alloc.h>
 #include "ContextVk.h"
 #include "TextureVk.h"
+#include "CommandListVk.h"
 
 namespace rhi
 {
@@ -26,11 +27,11 @@ namespace rhi
 		const ContextVk& getVkContext() const { return m_Context; }
 		const QueueFamilyIndices& getQueueFamilyIndices() const { return m_QueueFamilyIndices; }
 		void setSwapChainImageAvailableSeamaphore(const VkSemaphore& semaphore);
-
 		TextureVk* createTextureWithExistImage(const TextureDesc& desc, VkImage image);
 		// Interface implementation
-
+		void waitIdle() override;
 		ITexture* createTexture(const TextureDesc& desc) override;
+
 
 	private:
 		RenderDeviceVk() = default;
@@ -50,7 +51,9 @@ namespace rhi
 		VkQueue m_ComputeQueue;
 		VkQueue m_TransferQueue;
 
-		const VkSemaphore& m_SwapChainImgAavailableSemaphore;
+		VkSemaphore m_SwapChainImgAavailableSemaphore;
+
+		std::vector<CommandBuffer*> m_CommandBufferPool;
 	};
 }
 

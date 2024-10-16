@@ -26,7 +26,7 @@ namespace rhi
 		SwapChainVk(RenderDeviceVk& renderDevice);
 		void createSurface(void* platformHandle, void* platformWindow);
 		void createVkSwapChain();
-
+		void recreateSwapChain();
 		uint32_t m_Width = 0;
 		uint32_t m_Height = 0;
 
@@ -44,6 +44,7 @@ namespace rhi
 
 		std::vector<VkSemaphore> m_ImageAvailableSemaphores;
 
-		std::vector<std::unique_ptr<ITexture>> m_ColorTextures;
+		std::vector<std::unique_ptr<ITexture>> m_ColorBuffers;
+		std::unique_ptr<ITexture> m_DepthStencilBuffer;
 	};
 }

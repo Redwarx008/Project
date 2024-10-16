@@ -10,7 +10,7 @@ namespace rhi
 
     enum class ResourceStates : uint32_t
     {
-        Unknown = 0,
+        Undefined = 0,
         Common = 0x00000001,
         ConstantBuffer = 0x00000002,
         VertexBuffer = 0x00000004,

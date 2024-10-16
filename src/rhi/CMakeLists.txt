@@ -85,8 +85,7 @@ set(interface_rhi
 	"include/rhi/Resource.h"
 	"include/rhi/Rhi.h"
 	"include/rhi/SwapChain.h"
-	
-	)
+	"include/rhi/CommandList.h")
 set(common_rhi
 	"include/rhi/common/Error.h"
 	"include/rhi/common/Utils.h"
@@ -103,14 +102,15 @@ set(src_vk
 	"src/SwapChainVk.h"
 	"src/RhiVk.cpp"
 	"src/SwapChainVk.cpp"
-	 "src/ErrorVk.h")
+	"src/ErrorVk.h"
+	"src/CommandListVk.h" "src/CommandListVk.cpp")
 
 add_library(rhi "")
 
 target_sources(rhi	PRIVATE
 				${interface_rhi}
 				${common_rhi}
-				${src_vk} "src/ErrorVk.h")
+				${src_vk} )
 
 target_include_directories(rhi PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> )
 

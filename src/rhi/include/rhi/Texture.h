@@ -8,7 +8,7 @@ namespace rhi
 {
 	enum class TextureDimension : uint8_t
 	{
-		Unknown,
+		Undefined,
 		Texture1D,
 		Texture1DArray,
 		Texture2D,
@@ -95,7 +95,7 @@ namespace rhi
 
 	struct TextureDesc
 	{
-		TextureDimension dimension = TextureDimension::Unknown;
+		TextureDimension dimension = TextureDimension::Undefined;
 		uint32_t width = 1;
 		uint32_t height = 1;
 		/// For a 1D array or 2D array, number of array slices
@@ -110,7 +110,7 @@ namespace rhi
 		bool isStorage = false;
 		bool isRenderTarget = false;
 
-		ResourceStates initialState = ResourceStates::Unknown;
+		ResourceStates initialState = ResourceStates::Undefined;
 
 		constexpr TextureDesc& setWidth(uint32_t value) { width = value; return *this; }
 		constexpr TextureDesc& setHeight(uint32_t value) { height = value; return *this; }

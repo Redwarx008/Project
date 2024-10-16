@@ -212,7 +212,7 @@ namespace rhi
 		// This also cleans up all the presentable images
 		if (oldSwapchain != VK_NULL_HANDLE)
 		{
-			m_ColorTextures.clear();
+			m_ColorBuffers.clear();
 			vkDestroySwapchainKHR(m_RenderDevice.getVkContext().device, oldSwapchain, nullptr);
 			oldSwapchain = VK_NULL_HANDLE;
 		}
@@ -223,18 +223,30 @@ namespace rhi
 		err = vkGetSwapchainImagesKHR(m_RenderDevice.getVkContext().device, m_SwapChain, &imageCount, images.data());
 		CHECK_VK_RESULT(err, "Failed to get swap chain images");
 
-		m_ColorTextures.resize(imageCount);
+		m_ColorBuffers.resize(imageCount);
 
 		TextureDesc colorTextureDesc;
 		colorTextureDesc.width = swapchainExtent.width;
 		colorTextureDesc.height = swapchainExtent.height;
 		colorTextureDesc.format = m_ColorFormat;
 		colorTextureDesc.initialState = rhi::ResourceStates::Present;
-		for (int i = 0; i < m_ColorTextures.size(); ++i)
+		for (int i = 0; i < m_ColorBuffers.size(); ++i)
 		{
 			TextureVk* colorTex = m_RenderDevice.createTextureWithExistImage(colorTextureDesc, images[i]);
-			m_ColorTextures[i] = std::unique_ptr<ITexture>(colorTex);
+			m_ColorBuffers[i] = std::unique_ptr<ITexture>(colorTex);
 		}
+
+		if (m_DepthStencilFormat != TextureFormat::UNKNOWN)
+		{
+			TextureDesc depthStencilDesc;
+			depthStencilDesc.width = swapchainExtent.width;
+			depthStencilDesc.height = swapchainExtent.height;
+			depthStencilDesc.format = m_DepthStencilFormat;
+			depthStencilDesc.isRenderTarget = true;
+			TextureVk* depthStencilTex = static_cast<TextureVk*>(m_RenderDevice.createTexture(depthStencilDesc));
+			m_DepthStencilBuffer = std::unique_ptr<ITexture>(depthStencilTex);
+		}
+
 		// The semaphore needs to be rebuilt only if the number of swap chain images changes when the swapchain is rebuilt.
 		if (m_ImageAvailableSemaphores.size() != imageCount)
 		{
@@ -253,12 +265,30 @@ namespace rhi
 		}
 	}
 
+	void SwapChainVk::recreateSwapChain()
+	{
+		m_RenderDevice.waitIdle();
+		createVkSwapChain();
+	}
+
 	void SwapChainVk::BeginFrame()
 	{
 		const VkSemaphore& semaphore = m_ImageAvailableSemaphores[m_CurrentFrameInFlight];
 
 		VkResult err = vkAcquireNextImageKHR(m_RenderDevice.getVkContext().device,
 			m_SwapChain, UINT64_MAX, semaphore, nullptr, &m_SwapChainImageIndex);
-		
+		if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
+		{
+			recreateSwapChain();
+			err = vkAcquireNextImageKHR(m_RenderDevice.getVkContext().device,
+				m_SwapChain, UINT64_MAX, semaphore, nullptr, &m_SwapChainImageIndex);
+		}
+		CHECK_VK_RESULT(err, "Failed to acquire next swap chain image");
+		m_RenderDevice.setSwapChainImageAvailableSeamaphore(semaphore);
+	}
+
+	void SwapChainVk::present()
+	{
+
 	}
 }
