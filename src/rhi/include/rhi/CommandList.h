@@ -2,6 +2,8 @@
 
 namespace rhi
 {
+	enum class CommandListType
+
 	class ICommandList
 	{
 	public:

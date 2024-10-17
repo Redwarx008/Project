@@ -1,7 +1,6 @@
 #include "RenderDeviceVk.h"
 
 #include <sstream>
-
 #include "TextureVk.h"
 #include "ErrorVk.h"
 
@@ -385,5 +384,19 @@ namespace rhi
 	void RenderDeviceVk::setSwapChainImageAvailableSeamaphore(const VkSemaphore& semaophore)
 	{
 		m_SwapChainImgAavailableSemaphore = semaophore;
+	}
+
+	CommandBuffer* RenderDeviceVk::getOrCreateCommandBuffer()
+	{
+#if defined RHI_ENABLE_THREAD_RECORDING
+		std::lock_guard(m_Mutex);
+#endif
+		CommandBuffer* cmdBuf;
+		if (m_CommandBufferPool.empty())
+		{
+			VkCommandPoolCreateInfo commandPoolCI{};
+			commandPoolCI.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+			commandPoolCI.queueFamilyIndex = swapChain.queueNodeIndex;
+		}
 	}
 }

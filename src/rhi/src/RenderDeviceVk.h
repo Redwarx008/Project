@@ -1,7 +1,9 @@
 #pragma once
 
 #include "rhi/RenderDevice.h"
-
+#if defined RHI_ENABLE_THREAD_RECORDING
+#include <mutex>
+#endif
 #include <optional>
 #include <vk_mem_alloc.h>
 #include "ContextVk.h"
@@ -26,6 +28,7 @@ namespace rhi
 
 		const ContextVk& getVkContext() const { return m_Context; }
 		const QueueFamilyIndices& getQueueFamilyIndices() const { return m_QueueFamilyIndices; }
+		CommandBuffer* getOrCreateCommandBuffer();
 		void setSwapChainImageAvailableSeamaphore(const VkSemaphore& semaphore);
 		TextureVk* createTextureWithExistImage(const TextureDesc& desc, VkImage image);
 		// Interface implementation
@@ -39,7 +42,9 @@ namespace rhi
 		bool pickPhysicalDevice();
 		bool createDevice();
 		void destroyDebugUtilsMessenger();
-
+#if defined RHI_ENABLE_THREAD_RECORDING
+		std::mutex m_Mutex;
+#endif
 		ContextVk m_Context;
 		VmaAllocator m_Allocator;
 
@@ -53,6 +58,7 @@ namespace rhi
 
 		VkSemaphore m_SwapChainImgAavailableSemaphore;
 
+		std::vector<CommandBuffer*> m_CommandBufferInFlight;
 		std::vector<CommandBuffer*> m_CommandBufferPool;
 	};
 }
