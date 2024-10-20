@@ -2,13 +2,11 @@
 
 #include <cstdint>
 
-#define ASSERT_VK_SUCCESS(res) assert((res) == VK_SUCCESS)
-
 namespace rhi
 {
 
 
-    enum class ResourceStates : uint32_t
+    enum class ResourceState : uint32_t
     {
         Undefined = 0,
         Common = 0x00000001,

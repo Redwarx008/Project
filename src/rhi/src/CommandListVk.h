@@ -6,7 +6,7 @@
 
 namespace rhi
 {
-	class ContextVk;
+	class RenderDeviceVk;
 
 	class CommandBuffer
 	{
@@ -15,8 +15,8 @@ namespace rhi
 			:m_Context(context)
 		{}
 
-		VkCommandBuffer vkCmdBuf = VK_NULL_HANDLE;
-		VkCommandPool vkCmdPool = VK_NULL_HANDLE;
+		VkCommandBuffer vkCmdBuf{ VK_NULL_HANDLE };
+		VkCommandPool vkCmdPool{ VK_NULL_HANDLE };
 	private:
 		const ContextVk& m_Context;
 	};
@@ -25,11 +25,18 @@ namespace rhi
 	{
 	public:
 		~CommandListVk();
+		explicit CommandListVk(RenderDeviceVk& renderDevice)
+			:m_RenderDevice(renderDevice)
+		{}
 		void open() override;
 		void close() override;
 	private:
-		CommandListVk() {}
+		CommandListVk() = delete;
 
+		ResourceStateTracker m_ResourceStateTracker;
 
+		CommandBuffer* m_CurrentCmdBuf;
+
+		RenderDeviceVk& m_RenderDevice;
 	};
 }

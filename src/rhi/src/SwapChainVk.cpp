@@ -47,7 +47,7 @@ namespace rhi
 		CHECK_VK_RESULT(err, "Could not create surface!");
 
 		VkBool32 isGraphicsSupportPresent;
-		vkGetPhysicalDeviceSurfaceSupportKHR(m_RenderDevice.getVkContext().physicalDevice, m_RenderDevice.getQueueFamilyIndices().graphics.value(), m_WindowSurface, &isGraphicsSupportPresent);
+		vkGetPhysicalDeviceSurfaceSupportKHR(m_RenderDevice.getVkContext().physicalDevice, m_RenderDevice.getQueueFamilyIndex(), m_WindowSurface, &isGraphicsSupportPresent);
 		if (!isGraphicsSupportPresent)
 		{
 			LOG_ERROR("Could not support present!");
@@ -229,7 +229,7 @@ namespace rhi
 		colorTextureDesc.width = swapchainExtent.width;
 		colorTextureDesc.height = swapchainExtent.height;
 		colorTextureDesc.format = m_ColorFormat;
-		colorTextureDesc.initialState = rhi::ResourceStates::Present;
+		colorTextureDesc.initialState = rhi::ResourceState::Present;
 		for (int i = 0; i < m_ColorBuffers.size(); ++i)
 		{
 			TextureVk* colorTex = m_RenderDevice.createTextureWithExistImage(colorTextureDesc, images[i]);

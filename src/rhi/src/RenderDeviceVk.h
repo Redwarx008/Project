@@ -4,20 +4,13 @@
 #if defined RHI_ENABLE_THREAD_RECORDING
 #include <mutex>
 #endif
-#include <optional>
 #include <vk_mem_alloc.h>
 #include "ContextVk.h"
-#include "TextureVk.h"
 #include "CommandListVk.h"
 
 namespace rhi
 {
-	struct QueueFamilyIndices
-	{
-		std::optional<uint32_t> graphics;
-		std::optional<uint32_t> compute;
-		std::optional<uint32_t> transfer;
-	};
+	class TextureVk;
 
 	class RenderDeviceVk final : public IRenderDevice
 	{
@@ -27,14 +20,16 @@ namespace rhi
 		static RenderDeviceVk* create(const RenderDeviceDesc& desc);
 
 		const ContextVk& getVkContext() const { return m_Context; }
-		const QueueFamilyIndices& getQueueFamilyIndices() const { return m_QueueFamilyIndices; }
+		uint32_t getQueueFamilyIndex() const { return m_QueueFamilyIndex; }
 		CommandBuffer* getOrCreateCommandBuffer();
 		void setSwapChainImageAvailableSeamaphore(const VkSemaphore& semaphore);
 		TextureVk* createTextureWithExistImage(const TextureDesc& desc, VkImage image);
 		// Interface implementation
 		void waitIdle() override;
 		ITexture* createTexture(const TextureDesc& desc) override;
-
+		IBuffer* createBuffer(const BufferDesc& desc) override;
+		IBuffer* createBuffer(const BufferDesc& desc, const void* data, size_t dataSize) override;
+		ICommandList* createCommandList() override;
 
 	private:
 		RenderDeviceVk() = default;
@@ -50,11 +45,8 @@ namespace rhi
 
 		VkDebugUtilsMessengerEXT m_DebugUtilsMessenger;
 
-		QueueFamilyIndices m_QueueFamilyIndices;
-
-		VkQueue m_GraphicsQueue;
-		VkQueue m_ComputeQueue;
-		VkQueue m_TransferQueue;
+		uint32_t m_QueueFamilyIndex;
+		VkQueue m_Queue;
 
 		VkSemaphore m_SwapChainImgAavailableSemaphore;
 

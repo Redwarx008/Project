@@ -86,7 +86,7 @@ set(interface_rhi
 	"include/rhi/Resource.h"
 	"include/rhi/Rhi.h"
 	"include/rhi/SwapChain.h"
-	"include/rhi/CommandList.h")
+	"include/rhi/CommandList.h" "include/rhi/Buffer.h")
 set(common_rhi
 	"include/rhi/common/Error.h"
 	"include/rhi/common/Utils.h"
@@ -104,7 +104,7 @@ set(src_vk
 	"src/RhiVk.cpp"
 	"src/SwapChainVk.cpp"
 	"src/ErrorVk.h"
-	"src/CommandListVk.h" "src/CommandListVk.cpp")
+	"src/CommandListVk.h" "src/CommandListVk.cpp" "src/BufferVk.h")
 
 add_library(rhi "")
 

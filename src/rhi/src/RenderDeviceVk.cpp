@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include "TextureVk.h"
+#include "BufferVk.h"
 #include "ErrorVk.h"
 
 namespace rhi
@@ -176,49 +177,19 @@ namespace rhi
 		{
 			const auto& queueFamilyProps = queueFamilyPropertieses[i];
 
-			if (!m_QueueFamilyIndices.graphics.has_value())
+			if (queueFamilyProps.queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT))
 			{
-				if (queueFamilyProps.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-				{
-					m_QueueFamilyIndices.graphics = i;
-				}
-			}
-
-			if (!m_QueueFamilyIndices.compute.has_value())
-			{
-				if (queueFamilyProps.queueFlags & VK_QUEUE_COMPUTE_BIT &&
-					queueFamilyProps.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-				{
-					m_QueueFamilyIndices.compute = i;
-				}
-			}
-
-			if (!m_QueueFamilyIndices.transfer.has_value())
-			{
-				if (queueFamilyProps.queueFlags & VK_QUEUE_TRANSFER_BIT &&
-					queueFamilyProps.queueFlags & VK_QUEUE_COMPUTE_BIT &&
-					queueFamilyProps.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-				{
-					m_QueueFamilyIndices.transfer = i;
-				}
+				m_QueueFamilyIndex = i;
+				break;
 			}
 		}
-
-		std::vector<uint32_t> queueFamilies{ m_QueueFamilyIndices.graphics.value(),
-			m_QueueFamilyIndices.compute.value(),
-			m_QueueFamilyIndices.transfer.value() };
 
 		float priority = 1.f;
-		std::vector<VkDeviceQueueCreateInfo> queueCreateInfo(queueFamilies.size());
-		for (uint32_t queueFamilyIndex : queueFamilies)
-		{
-			VkDeviceQueueCreateInfo queueInfo{};
-			queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueInfo.queueFamilyIndex = queueFamilyIndex;
-			queueInfo.queueCount = 1;
-			queueInfo.pQueuePriorities = &priority;
-			queueCreateInfo.push_back(queueInfo);
-		}
+		VkDeviceQueueCreateInfo queueCI{};
+		queueCI.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCI.queueFamilyIndex = m_QueueFamilyIndex;;
+		queueCI.queueCount = 1;
+		queueCI.pQueuePriorities = &priority;
 
 		// Create the logical device
 		std::vector<const char*> deviceExtensions;
@@ -234,8 +205,8 @@ namespace rhi
 		deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 		deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 		deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
-		deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfo.size());
-		deviceCreateInfo.pQueueCreateInfos = queueCreateInfo.data();
+		deviceCreateInfo.queueCreateInfoCount = 1;
+		deviceCreateInfo.pQueueCreateInfos = &queueCI;
 
 		VkResult result = vkCreateDevice(m_Context.physicalDevice, &deviceCreateInfo, nullptr, &m_Context.device);
 		if (result != VK_SUCCESS)
@@ -244,9 +215,7 @@ namespace rhi
 			return false;
 		}
 
-		vkGetDeviceQueue(m_Context.device, m_QueueFamilyIndices.graphics.value(), 0, &m_GraphicsQueue);
-		vkGetDeviceQueue(m_Context.device, m_QueueFamilyIndices.compute.value(), 0, &m_ComputeQueue);
-		vkGetDeviceQueue(m_Context.device, m_QueueFamilyIndices.transfer.value(), 0, &m_TransferQueue);
+		vkGetDeviceQueue(m_Context.device, m_QueueFamilyIndex, 0, &m_Queue);
 		return true;
 	}
 
@@ -368,6 +337,72 @@ namespace rhi
 		return tex;
 	}
 
+	IBuffer* RenderDeviceVk::createBuffer(const BufferDesc& desc)
+	{
+		BufferVk* buffer = new BufferVk(m_Context, m_Allocator);
+
+		VkBufferCreateInfo bufferCI{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		bufferCI.size = desc.size;
+		bufferCI.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+		switch (desc.usage)
+		{
+		case BufferUsage::VertexBuffer:
+			bufferCI.usage |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+			break;
+		case BufferUsage::IndexBuffer:
+			bufferCI.usage |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+			break;
+		case BufferUsage::IndirectBuffer:
+			bufferCI.usage |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+			break;
+		case BufferUsage::UniformBuffer:
+			bufferCI.usage |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+			break;
+		case BufferUsage::StorageBuffer:
+			bufferCI.usage |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+			break;
+		case BufferUsage::UniformTexelBuffer:
+			bufferCI.usage |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
+			break;
+		case BufferUsage::StorageTexelBuffer:
+			bufferCI.usage |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+			break;
+		}
+
+		VmaAllocationCreateInfo allocCI {};
+		allocCI.usage = VMA_MEMORY_USAGE_AUTO;
+		allocCI.priority = 1.0f;
+		switch (desc.access)
+		{
+		case BufferAccess::GpuOnly:
+			allocCI.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+			break;
+		case BufferAccess::CpuWrite:
+			allocCI.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+			break;
+		case BufferAccess::CpuRead:
+			allocCI.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+			break;
+		}
+
+		VkResult err = vmaCreateBuffer(m_Allocator, &bufferCI, &allocCI, &buffer->buffer, &buffer->allocation, nullptr);
+		CHECK_VK_RESULT(err, "Could not create buffer");
+
+		if (err != VK_SUCCESS)
+		{
+			delete buffer;
+			buffer = nullptr;
+		}
+
+		return buffer;
+	}
+
+	IBuffer* RenderDeviceVk::createBuffer(const BufferDesc& desc, const void* data, size_t dataSize)
+	{
+		BufferVk* buffer = checked_cast<BufferVk*>(createBuffer(desc));
+
+	}
+
 	TextureVk* RenderDeviceVk::createTextureWithExistImage(const TextureDesc& desc, VkImage image)
 	{
 		auto tex = new TextureVk{ m_Context, m_Allocator };
@@ -394,9 +429,36 @@ namespace rhi
 		CommandBuffer* cmdBuf;
 		if (m_CommandBufferPool.empty())
 		{
+			cmdBuf = new CommandBuffer(m_Context);
 			VkCommandPoolCreateInfo commandPoolCI{};
 			commandPoolCI.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-			commandPoolCI.queueFamilyIndex = swapChain.queueNodeIndex;
+			commandPoolCI.queueFamilyIndex = m_QueueFamilyIndex;
+			commandPoolCI.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+
+			VkResult err = vkCreateCommandPool(m_Context.device, &commandPoolCI, nullptr, &cmdBuf->vkCmdPool);
+			CHECK_VK_RESULT(err, "Could not create vkCommandPool");
+
+			VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
+			commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+			commandBufferAllocateInfo.commandPool = cmdBuf->vkCmdPool;
+			commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+			commandBufferAllocateInfo.commandBufferCount = 1;
+
+			err = vkAllocateCommandBuffers(m_Context.device, &commandBufferAllocateInfo, &cmdBuf->vkCmdBuf);
+			CHECK_VK_RESULT(err, "Could not create vkCommandBuffer");
+
+			if (err != VK_SUCCESS)
+			{
+				delete cmdBuf;
+				return nullptr;
+			}
 		}
+		else
+		{
+			cmdBuf = m_CommandBufferPool.back();
+			m_CommandBufferPool.pop_back();
+		}
+
+		return cmdBuf;
 	}
 }
