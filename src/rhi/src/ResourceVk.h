@@ -38,9 +38,12 @@ namespace rhi
 	public:
 		void setTextureState(TextureVk* texture, ResourceState state);
 		void setBufferState(BufferVk* buffer, ResourceState state);
+		void begainTrackingResourceState(TextureVk* texture, ResourceState state);
+		void begainTrackingResourceState(BufferVk* buffer, ResourceState state);
+
 	private:
-
-
+		ResourceState getOrCreateResourceState(TextureVk* texture, bool allowCreate);
+		ResourceState getOrCreateResourceState(BufferVk* buffer, bool allowCreate);
 		std::unordered_map<TextureVk*, ResourceState> m_TextureStates;
 		std::unordered_map<BufferVk*, ResourceState> m_BufferStates;
 

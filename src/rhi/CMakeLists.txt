@@ -104,7 +104,7 @@ set(src_vk
 	"src/RhiVk.cpp"
 	"src/SwapChainVk.cpp"
 	"src/ErrorVk.h"
-	"src/CommandListVk.h" "src/CommandListVk.cpp" "src/BufferVk.h")
+	"src/CommandListVk.h" "src/CommandListVk.cpp" "src/BufferVk.h" "src/ResourceVk.cpp")
 
 add_library(rhi "")
 
