@@ -110,8 +110,6 @@ namespace rhi
 		bool isStorage = false;
 		bool isRenderTarget = false;
 
-		ResourceState initialState = ResourceState::Undefined;
-
 		constexpr TextureDesc& setWidth(uint32_t value) { width = value; return *this; }
 		constexpr TextureDesc& setHeight(uint32_t value) { height = value; return *this; }
 		constexpr TextureDesc& setDepth(uint32_t value) { depth = value; return *this; }
@@ -119,16 +117,15 @@ namespace rhi
 		constexpr TextureDesc& setMipLevels(uint32_t value) { mipLevels = value; return *this; }
 		constexpr TextureDesc& setFormat(TextureFormat value) { format = value; return *this; }
 		constexpr TextureDesc& setDimension(TextureDimension value) { dimension = value; return *this; }
-		constexpr TextureDesc& setInitialState(ResourceState value) { initialState = value; return *this; }
 		constexpr TextureDesc& setIsSampled(bool value) { isSampled = value; return *this; }
 		constexpr TextureDesc& setIsStorage(bool value) { isStorage = value; return *this; }
 		constexpr TextureDesc& setIsRenderTarget(bool value) { isRenderTarget = value; return *this; }
 	};
 
-	class ITexture
+	class ITexture : public IResource
 	{
 	public:
 		virtual ~ITexture() = default;
-
+		virtual const TextureDesc& getDesc() const = 0;
 	};
 }

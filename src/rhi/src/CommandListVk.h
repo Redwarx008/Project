@@ -30,10 +30,13 @@ namespace rhi
 		{}
 		void open() override;
 		void close() override;
+		void transitionTextureState(ITexture& texture, ResourceState newState) override;
+		void transitionBufferState(IBuffer& buffer, ResourceState newState) override;
 	private:
 		CommandListVk() = delete;
 
-		ResourceStateTracker m_ResourceStateTracker;
+		std::vector<TextureBarrier> m_TextureBarriers;
+		std::vector<BufferBarrier> m_BufferBarriers;
 
 		CommandBuffer* m_CurrentCmdBuf;
 

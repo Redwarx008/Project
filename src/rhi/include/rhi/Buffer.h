@@ -41,7 +41,7 @@ namespace rhi
 	};
 
 
-	class IBuffer
+	class IBuffer : public IResource
 	{
 	public:
 		virtual ~IBuffer() = default;
