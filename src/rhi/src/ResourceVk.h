@@ -21,4 +21,6 @@ namespace rhi
 
 	inline VkPipelineStageFlags2 resourceStatesToVkPipelineStageFlags2(ResourceState states);
 
+	inline VkImageLayout resourceStateToVkImageLayout(ResourceState state);
+
 }
