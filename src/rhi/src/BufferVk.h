@@ -14,6 +14,7 @@ namespace rhi
 			:m_Context(context),
 			m_Allocator(allocator)
 		{}
+		void setState(ResourceState state) { m_State = state; }
 		~BufferVk();
 		VkBuffer buffer;
 	private:

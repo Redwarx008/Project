@@ -29,9 +29,10 @@ namespace rhi
 	class TextureVk final : public ITexture, public MemoryResource
 	{
 	public:
-		TextureVk(const ContextVk& context, const VmaAllocator& allocator)
+		explicit TextureVk(const ContextVk& context, const VmaAllocator& allocator)
 			:m_Context(context),
 			m_Allocator(allocator) {}
+		void setState(ResourceState state) { m_State = state; }
 		~TextureVk();
 		TextureDesc desc;
 		VkImage image = VK_NULL_HANDLE;

@@ -31,10 +31,6 @@ namespace rhi
 	{
 		size_t size = 0;
 
-		ResourceState initialState = ResourceState::Common;
-
-		bool keepInitialState = false;
-
 		BufferAccess access = BufferAccess::GpuOnly;
 
 		BufferUsage usage = BufferUsage::VertexBuffer;
@@ -45,5 +41,8 @@ namespace rhi
 	{
 	public:
 		virtual ~IBuffer() = default;
+		const BufferDesc& getDesc() const { return m_Desc; }
+	protected:
+		BufferDesc m_Desc;
 	};
 }

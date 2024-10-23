@@ -2,6 +2,7 @@
 
 #include "rhi/Resource.h"
 
+#include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
 #include <unordered_map>
@@ -9,28 +10,15 @@
 
 namespace rhi
 {
-	class TextureVk;
-	class BufferVk;
-
-	struct TextureBarrier
-	{
-		TextureVk* texture = nullptr;
-		ResourceState stateBefore = ResourceState::Undefined;
-		ResourceState stateAfter = ResourceState::Undefined;
-	};
-
-	struct BufferBarrier
-	{
-		BufferVk* buffer = nullptr;
-		ResourceState stateBefore = ResourceState::Undefined;
-		ResourceState stateAfter = ResourceState::Undefined;
-	};
-
 	class MemoryResource
 	{
 	public:
 		bool managed = true;
 		VmaAllocation allocation = nullptr;
 	};
+
+	inline VkAccessFlags2 resourceStatesToVkAccessFlags2(ResourceState states);
+
+	inline VkPipelineStageFlags2 resourceStatesToVkPipelineStageFlags2(ResourceState states);
 
 }

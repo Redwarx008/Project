@@ -6,29 +6,27 @@ namespace rhi
 {
 	enum class ResourceState : uint32_t
 	{
-		Unknown,
-		Undefined = 0,
-		Common = 0x00000001,
-		ConstantBuffer = 0x00000002,
-		VertexBuffer = 0x00000004,
-		IndexBuffer = 0x00000008,
-		IndirectArgument = 0x00000010,
-		ShaderResource = 0x00000020,
-		UnorderedAccess = 0x00000040,
-		RenderTarget = 0x00000080,
-		DepthWrite = 0x00000100,
-		DepthRead = 0x00000200,
-		StreamOut = 0x00000400,
-		CopyDest = 0x00000800,
-		CopySource = 0x00001000,
-		ResolveDest = 0x00002000,
-		ResolveSource = 0x00004000,
-		Present = 0x00008000,
-		AccelStructRead = 0x00010000,
-		AccelStructWrite = 0x00020000,
-		AccelStructBuildInput = 0x00040000,
-		AccelStructBuildBlas = 0x00080000,
-		ShadingRateSurface = 0x00100000,
+		Undefined = (0 << 0),
+		Common = (1 << 0),
+		ConstantBuffer = (1 << 1),
+		VertexBuffer = (1 << 2),
+		IndexBuffer = (1 << 3),
+		IndirectArgument = (1 << 4),
+		ShaderResource = (1 << 5),
+		UnorderedAccess = (1 << 6),
+		RenderTarget = (1 << 7),
+		DepthWrite = (1 << 8),
+		DepthRead = (1 << 9),
+		CopyDest = (1 << 10),
+		CopySource = (1 << 11),
+		ResolveDest = (1 << 12),
+		ResolveSource = (1 << 13),
+		Present = (1 << 14),
+		AccelStructRead = (1 << 15),
+		AccelStructWrite = (1 << 16),
+		AccelStructBuildInput = (1 << 17),
+		AccelStructBuildBlas = (1 << 18),
+		ShadingRateSurface = (1 << 19),
 	};
 
 	inline ResourceState operator | (ResourceState a, ResourceState b)
@@ -46,11 +44,11 @@ namespace rhi
 	inline bool operator !(ResourceState a)
 	{
 		return uint32_t(a) == 0;
-	} 
-	inline bool operator ==(ResourceState a, uint32_t b) 
+	}
+	inline bool operator ==(ResourceState a, uint32_t b)
 	{
 		return uint32_t(a) == b;
-	} 
+	}
 	inline bool operator !=(ResourceState a, uint32_t b)
 	{
 		return uint32_t(a) != b;
@@ -60,8 +58,7 @@ namespace rhi
 	{
 	public:
 		virtual ResourceState getState() const = 0;
-		virtual void setState() = 0;
 	protected:
-		ResourceState m_State = ResourceState::Unknown;
+		ResourceState m_State = ResourceState::Undefined;
 	};
 }

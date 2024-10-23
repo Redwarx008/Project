@@ -126,6 +126,8 @@ namespace rhi
 	{
 	public:
 		virtual ~ITexture() = default;
-		virtual const TextureDesc& getDesc() const = 0;
+		const TextureDesc& getDesc() const { return m_Desc; }
+	protected:
+		TextureDesc m_Desc;
 	};
 }

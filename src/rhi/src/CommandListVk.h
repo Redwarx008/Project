@@ -3,10 +3,13 @@
 #include "rhi/CommandList.h"
 
 #include <vulkan/vulkan.h>
-
+#include <vector>
 namespace rhi
 {
 	class RenderDeviceVk;
+	class TextureVk;
+	class BufferVk;
+	class ContextVk;
 
 	class CommandBuffer
 	{
@@ -30,11 +33,27 @@ namespace rhi
 		{}
 		void open() override;
 		void close() override;
+		void commitBarriers() override;
 		void transitionTextureState(ITexture& texture, ResourceState newState) override;
 		void transitionBufferState(IBuffer& buffer, ResourceState newState) override;
+
+		void setBufferBarrier(BufferVk& buffer, VkPipelineStageFlags2 stage, VkAccessFlags2 access);
 	private:
 		CommandListVk() = delete;
 
+		struct TextureBarrier
+		{
+			TextureVk* texture = nullptr;
+			ResourceState stateBefore = ResourceState::Undefined;
+			ResourceState stateAfter = ResourceState::Undefined;
+		};
+
+		struct BufferBarrier
+		{
+			BufferVk* buffer = nullptr;
+			ResourceState stateBefore = ResourceState::Undefined;
+			ResourceState stateAfter = ResourceState::Undefined;
+		};
 		std::vector<TextureBarrier> m_TextureBarriers;
 		std::vector<BufferBarrier> m_BufferBarriers;
 
