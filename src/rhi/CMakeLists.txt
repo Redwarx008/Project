@@ -86,7 +86,7 @@ set(interface_rhi
 	"include/rhi/Resource.h"
 	"include/rhi/Rhi.h"
 	"include/rhi/SwapChain.h"
-	"include/rhi/CommandList.h" "include/rhi/Buffer.h")
+	"include/rhi/CommandList.h" "include/rhi/Buffer.h" "include/rhi/PipelineState.h" "include/rhi/Shader.h")
 set(common_rhi
 	"include/rhi/common/Error.h"
 	"include/rhi/common/Utils.h"

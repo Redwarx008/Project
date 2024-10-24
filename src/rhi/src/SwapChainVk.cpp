@@ -236,7 +236,7 @@ namespace rhi
 			m_ColorBuffers[i] = std::unique_ptr<ITexture>(colorTex);
 		}
 
-		if (m_DepthStencilFormat != TextureFormat::UNKNOWN)
+		if (m_DepthStencilFormat != Format::UNKNOWN)
 		{
 			TextureDesc depthStencilDesc;
 			depthStencilDesc.width = swapchainExtent.width;

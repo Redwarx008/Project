@@ -18,7 +18,7 @@ namespace rhi
 		Texture3D
 	};
 
-	enum class TextureFormat : uint8_t
+	enum class Format : uint8_t
 	{
 		UNKNOWN,
 
@@ -104,7 +104,7 @@ namespace rhi
 		uint32_t depth = 1;
 		uint32_t sampleCount = 1;
 		uint32_t mipLevels = 1;
-		TextureFormat format = TextureFormat::UNKNOWN;
+		Format format = Format::UNKNOWN;
 
 		bool isSampled = true;
 		bool isStorage = false;
@@ -115,7 +115,7 @@ namespace rhi
 		constexpr TextureDesc& setDepth(uint32_t value) { depth = value; return *this; }
 		constexpr TextureDesc& setArraySize(uint32_t value) { arraySize = value; return *this; }
 		constexpr TextureDesc& setMipLevels(uint32_t value) { mipLevels = value; return *this; }
-		constexpr TextureDesc& setFormat(TextureFormat value) { format = value; return *this; }
+		constexpr TextureDesc& setFormat(Format value) { format = value; return *this; }
 		constexpr TextureDesc& setDimension(TextureDimension value) { dimension = value; return *this; }
 		constexpr TextureDesc& setIsSampled(bool value) { isSampled = value; return *this; }
 		constexpr TextureDesc& setIsStorage(bool value) { isStorage = value; return *this; }

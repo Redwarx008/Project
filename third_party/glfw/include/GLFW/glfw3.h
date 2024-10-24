@@ -2348,7 +2348,7 @@ GLFWAPI void glfwInitAllocator(const GLFWallocator* allocator);
  *  For more information about this function, see the
  *  [Vulkan Registry](https://www.khronos.org/registry/vulkan/).
  *
- *  @errors None.
+ *  @errors Unknown.
  *
  *  @remark This function may be called before @ref glfwInit.
  *
@@ -2377,7 +2377,7 @@ GLFWAPI void glfwInitVulkanLoader(PFN_vkGetInstanceProcAddr loader);
  *  @param[out] minor Where to store the minor version number, or `NULL`.
  *  @param[out] rev Where to store the revision number, or `NULL`.
  *
- *  @errors None.
+ *  @errors Unknown.
  *
  *  @remark This function may be called before @ref glfwInit.
  *
@@ -2409,7 +2409,7 @@ GLFWAPI void glfwGetVersion(int* major, int* minor, int* rev);
  *
  *  @return The ASCII encoded GLFW version string.
  *
- *  @errors None.
+ *  @errors Unknown.
  *
  *  @remark This function may be called before @ref glfwInit.
  *
@@ -2438,7 +2438,7 @@ GLFWAPI const char* glfwGetVersionString(void);
  *  @return The last error code for the calling thread, or @ref GLFW_NO_ERROR
  *  (zero).
  *
- *  @errors None.
+ *  @errors Unknown.
  *
  *  @pointer_lifetime The returned string is allocated and freed by GLFW.  You
  *  should not free it yourself.  It is guaranteed to be valid only until the
@@ -2488,7 +2488,7 @@ GLFWAPI int glfwGetError(const char** description);
  *  For more information about the callback parameters, see the
  *  [callback pointer type](@ref GLFWerrorfun).
  *
- *  @errors None.
+ *  @errors Unknown.
  *
  *  @remark This function may be called before @ref glfwInit.
  *

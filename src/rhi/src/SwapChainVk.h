@@ -30,8 +30,8 @@ namespace rhi
 		uint32_t m_Width = 0;
 		uint32_t m_Height = 0;
 
-		TextureFormat m_ColorFormat {TextureFormat::UNKNOWN};
-		TextureFormat m_DepthStencilFormat{ TextureFormat::UNKNOWN };
+		Format m_ColorFormat {Format::UNKNOWN};
+		Format m_DepthStencilFormat{ Format::UNKNOWN };
 
 		bool m_VSyncEnabled = false;
 
